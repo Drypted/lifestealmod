@@ -3,6 +3,7 @@ package com.drypted.lifesteal.command;
 import com.drypted.lifesteal.api.HeartManager;
 import com.drypted.lifesteal.api.ServerItemHelper;
 import com.drypted.lifesteal.config.LifestealConfig;
+import com.drypted.lifesteal.gui.RecipeGUI;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
@@ -193,6 +194,14 @@ public class LifestealCommands {
                         })
                     )
                 )
+            )
+            
+            .then(Commands.literal("recipe")
+                .executes(context -> {
+                    ServerPlayer player = context.getSource().getPlayerOrException();
+                    RecipeGUI.openMainMenu(player);
+                    return 1;
+                })
             )
 
             // /lifesteal settings <property> <value>
