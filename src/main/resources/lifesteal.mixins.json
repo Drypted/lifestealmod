@@ -3,7 +3,9 @@
 	"package": "com.drypted.lifesteal.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"NetherStarHeartMixin"
+		"ItemUseMixin",
+		"BlockPlaceMixin",
+		"ReviveGUIMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
