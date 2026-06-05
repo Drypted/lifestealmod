@@ -38,13 +38,25 @@ public class ServerItemHelper {
 
     public static boolean isAuthenticHeart(ItemStack stack) {
         if (!stack.is(Items.NETHER_STAR)) return false;
+
         CustomData data = stack.get(DataComponents.CUSTOM_DATA);
-        return data != null && data.equals("lifesteal_heart");
+        if (data == null) return false;
+
+        CompoundTag expected = new CompoundTag();
+        expected.putBoolean("lifesteal_heart", true);
+
+        return data.matchedBy(expected);
     }
 
     public static boolean isAuthenticBeacon(ItemStack stack) {
         if (!stack.is(Items.BEACON)) return false;
+
         CustomData data = stack.get(DataComponents.CUSTOM_DATA);
-        return data != null && data.equals("lifesteal_beacon");
+        if (data == null) return false;
+
+        CompoundTag expected = new CompoundTag();
+        expected.putBoolean("lifesteal_beacon", true);
+
+        return data.matchedBy(expected);
     }
 }

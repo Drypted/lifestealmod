@@ -6,7 +6,10 @@ import com.drypted.lifesteal.config.LifestealConfig;
 import com.drypted.lifesteal.item.HeartDropHandler;
 import com.mojang.authlib.GameProfile;
 
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityLevelChangeEvents;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -19,7 +22,29 @@ import java.util.Date;
 public class LifestealEvents {
 
     public static void register() {
-        // ... (Keep your JOIN, RESPAWN, COPY_FROM, WORLD CHANGE events here) ...
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+            HeartManager.updateHealthAttribute(handler.getPlayer());
+        });
+
+        // RESPAWN
+        ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
+            // Data should have been copied via COPY_FROM; just reapply attribute
+            HeartManager.updateHealthAttribute(newPlayer);
+        });
+
+        // COPY_FROM (critical for persistence)
+        ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
+            Double oldHealth = oldPlayer.getAttached(Lifesteal.LIFESTEAL_MAX_HEALTH);
+            if (oldHealth != null) {
+                newPlayer.setAttached(Lifesteal.LIFESTEAL_MAX_HEALTH, oldHealth);
+            }
+            HeartManager.updateHealthAttribute(newPlayer);
+        });
+
+        // WORLD CHANGE (dimension travel)
+        ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) -> {
+            HeartManager.updateHealthAttribute(player);
+        });
 
         ServerLivingEntityEvents.AFTER_DEATH.register((victim, source) -> {
             if (!(victim instanceof ServerPlayer serverVictim)) return;

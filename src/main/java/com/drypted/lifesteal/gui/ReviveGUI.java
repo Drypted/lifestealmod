@@ -54,8 +54,11 @@ public class ReviveGUI {
 
     private static ItemStack createHead(GameProfile profile) {
         ItemStack head = new ItemStack(Items.PLAYER_HEAD);
-        // ResolvableProfile resolvableProfile = new ResolvableProfile(profile);
-        // head.set(DataComponents.PROFILE, resolvableProfile);
+        head.set(
+            DataComponents.PROFILE,
+            ResolvableProfile.createResolved(profile)
+        );
+        
         head.set(DataComponents.CUSTOM_NAME, Component.literal("§eRevive " + profile.name()).withStyle(style -> style.withItalic(false)));
         return head;
     }

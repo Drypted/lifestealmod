@@ -1,5 +1,6 @@
 package com.drypted.lifesteal;
 
+import com.drypted.lifesteal.command.LifestealCommands;
 import com.drypted.lifesteal.event.LifestealEvents;
 import com.mojang.serialization.Codec;
 
@@ -22,5 +23,6 @@ public class Lifesteal implements ModInitializer {
     @Override
     public void onInitialize() {
         LifestealEvents.register();
+        LifestealCommands.register();
     }
 }
