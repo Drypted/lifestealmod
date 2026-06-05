@@ -1,8 +1,8 @@
 package com.drypted.lifesteal;
 
 import com.drypted.lifesteal.event.LifestealEvents;
-import com.drypted.lifesteal.item.ModItems;
 import com.mojang.serialization.Codec;
+
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
@@ -21,7 +21,6 @@ public class Lifesteal implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        ModItems.registerItems();
         LifestealEvents.register();
     }
 }

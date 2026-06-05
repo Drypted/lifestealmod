@@ -3,6 +3,7 @@
 	"package": "com.drypted.lifesteal.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
+		"NetherStarHeartMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

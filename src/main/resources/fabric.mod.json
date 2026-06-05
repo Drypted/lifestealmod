@@ -17,17 +17,10 @@
 	"entrypoints": {
 		"main": [
 			"com.drypted.lifesteal.Lifesteal"
-		],
-		"client": [
-			"com.drypted.lifesteal.client.LifestealClient"
 		]
 	},
 	"mixins": [
-		"lifesteal.mixins.json",
-		{
-			"config": "lifesteal.client.mixins.json",
-			"environment": "client"
-		}
+		"lifesteal.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=0.19.3",
