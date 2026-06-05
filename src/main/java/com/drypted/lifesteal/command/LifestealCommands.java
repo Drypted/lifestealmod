@@ -43,9 +43,9 @@ public class LifestealCommands {
                     double healthCost = amountToWithdraw * 2.0; 
                     double currentMax = HeartManager.getMaxHealth(player); //[cite: 20]
                     
-                    if (currentMax - healthCost <= HeartManager.MIN_MAX_HEALTH) { //[cite: 20]
-                        player.sendSystemMessage(Component.literal("§cYou do not have enough hearts to withdraw this amount!")); //[cite: 20]
-                        return 0; //[cite: 20]
+                    if (currentMax - healthCost < HeartManager.MIN_MAX_HEALTH) {
+                        player.sendSystemMessage(Component.literal("§cYou cannot withdraw your last heart!"));
+                        return 0;
                     }
                     
                     HeartManager.setMaxHealth(player, currentMax - healthCost); //[cite: 20]

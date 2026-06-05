@@ -20,6 +20,17 @@ import net.minecraft.world.level.GameType;
 import java.util.Date;
 
 public class LifestealEvents {
+    
+    private static void handleKillerReward(ServerPlayer serverVictim, ServerPlayer serverKiller) {
+        double killerHealth = HeartManager.getMaxHealth(serverKiller);
+        if (killerHealth < LifestealConfig.maxHearts) {
+            HeartManager.setMaxHealth(serverKiller, killerHealth + HeartManager.HEART_STEAL_AMOUNT);
+            serverKiller.heal((float) HeartManager.HEART_STEAL_AMOUNT);
+        } else {
+            // Killer is at max max health, drop item on ground
+            HeartDropHandler.tryDropHeart(serverVictim, serverKiller);
+        }
+    }
 
     public static void register() {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
@@ -57,25 +68,26 @@ public class LifestealEvents {
                 double currentHealth = HeartManager.getMaxHealth(serverVictim);
                 double newHealth = currentHealth - HeartManager.HEART_STEAL_AMOUNT;
                 
-                // Set the victim's new health (allowing it to hit 0 for the check below)
-                HeartManager.setMaxHealth(serverVictim, Math.max(0, newHealth));
-
-                // If killed by a player, handle the killer's rewards
-                if (serverKiller != null && serverVictim != serverKiller) {
-                    double killerHealth = HeartManager.getMaxHealth(serverKiller);
-                    if (killerHealth < LifestealConfig.maxHearts) {
-                        HeartManager.setMaxHealth(serverKiller, killerHealth + HeartManager.HEART_STEAL_AMOUNT);
-                        serverKiller.heal((float) HeartManager.HEART_STEAL_AMOUNT);
-                    } else {
-                        // Killer is at max, drop a heart item
-                        HeartDropHandler.tryDropHeart(serverVictim, serverKiller);
+                // 2. ELIMINATION CHECK (Evaluated on raw math before clamping occurs)
+                if (newHealth <= 0.0) {
+                    // Force their maximum health down to the baseline limit for safety, then execute elimination
+                    HeartManager.setMaxHealth(serverVictim, HeartManager.MIN_MAX_HEALTH);
+                    
+                    // Reward the killer if applicable
+                    if (serverKiller != null && serverVictim != serverKiller) {
+                        handleKillerReward(serverVictim, serverKiller);
+                    }
+                    
+                    eliminatePlayer(serverVictim);
+                } else {
+                    // Standard non-fatal heart loss transaction
+                    HeartManager.setMaxHealth(serverVictim, newHealth);
+                    
+                    // Reward the killer if applicable
+                    if (serverKiller != null && serverVictim != serverKiller) {
+                        handleKillerReward(serverVictim, serverKiller);
                     }
                 }
-            }
-
-            // 2. ELIMINATION CHECK (0 Hearts)
-            if (HeartManager.getMaxHealth(serverVictim) <= 0.0) {
-                eliminatePlayer(serverVictim);
             }
         });
     }
