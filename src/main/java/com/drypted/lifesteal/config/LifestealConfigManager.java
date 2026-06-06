@@ -16,6 +16,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 public class LifestealConfigManager {
@@ -40,6 +42,9 @@ public class LifestealConfigManager {
     public String[] heartRecipeIds = new String[9];
     public String[] beaconRecipeIds = new String[9];
 
+    // Inside LifestealConfigManager class, add:
+    public Map<String, Integer> enchantmentCaps = new HashMap<>();
+
     // Singleton instance
     private static LifestealConfigManager INSTANCE = null;
 
@@ -57,6 +62,8 @@ public class LifestealConfigManager {
 
     public static void load(MinecraftServer server) {
         currentServer = server;
+        
+        if (INSTANCE.enchantmentCaps == null) INSTANCE.enchantmentCaps = new HashMap<>();
         
         // Create instance first if needed
         if (INSTANCE == null) {

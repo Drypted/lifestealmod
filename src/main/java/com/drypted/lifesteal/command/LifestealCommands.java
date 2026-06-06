@@ -4,6 +4,7 @@ import com.drypted.lifesteal.api.HeartManager;
 import com.drypted.lifesteal.api.ServerItemHelper;
 import com.drypted.lifesteal.config.LifestealConfig;
 import com.drypted.lifesteal.config.LifestealConfigManager;
+import com.drypted.lifesteal.gui.EnchantmentCapGUI;
 import com.drypted.lifesteal.gui.RecipeGUI;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
@@ -126,6 +127,14 @@ public class LifestealCommands {
                     })
                 )
             )
+            
+            .then(Commands.literal("enchantment_cap")
+                .executes(context -> {
+                    ServerPlayer player = context.getSource().getPlayerOrException();
+                    EnchantmentCapGUI.openMainMenu(player);
+                    return 1;
+                })
+)
 
             // /lifesteal revive <player>
             // .then(Commands.literal("revive")

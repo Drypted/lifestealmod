@@ -7,7 +7,9 @@
 		"BlockPlaceMixin",
 		"ReviveGUIMixin",
 		"RecipeGUIMixin",
-		"DynamicCraftingMixin"
+		"DynamicCraftingMixin",
+		"EnchantmentCapGUIMixin",
+		"InventoryEnforceMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

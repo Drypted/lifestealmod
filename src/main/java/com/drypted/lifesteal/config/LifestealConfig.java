@@ -1,5 +1,8 @@
 package com.drypted.lifesteal.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import net.minecraft.world.item.ItemStack;
 
 public class LifestealConfig {
@@ -24,6 +27,9 @@ public class LifestealConfig {
     // Recipe matrices
     public static ItemStack[] heartRecipeMatrix = new ItemStack[9];
     public static ItemStack[] beaconRecipeMatrix = new ItemStack[9];
+
+    // Enchantment
+    public Map<String, Integer> enchantmentCaps = new HashMap<>();
 
     static {
         for (int i = 0; i < 9; i++) {
