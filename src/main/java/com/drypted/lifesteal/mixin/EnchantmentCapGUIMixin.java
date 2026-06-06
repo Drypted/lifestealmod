@@ -33,8 +33,24 @@ public class EnchantmentCapGUIMixin {
 
             int slot = packet.slotNum();
             ItemStack clicked = chestMenu.getContainer().getItem(slot);
+            
+            // Handle pagination clicks
+            if (slot == 45) { // Left Previous
+                this.player.level().getServer().execute(() -> changeLeftPage(this.player, -1));
+                return;
+            } else if (slot == 47) { // Left Next
+                this.player.level().getServer().execute(() -> changeLeftPage(this.player, +1));
+                return;
+            } else if (slot == 50) { // Right Previous
+                this.player.level().getServer().execute(() -> changeRightPage(this.player, -1));
+                return;
+            } else if (slot == 52) { // Right Next
+                this.player.level().getServer().execute(() -> changeRightPage(this.player, +1));
+                return;
+            }
+            
+            // Handle clicks on items (either active cap or enchantment book)
             if (!clicked.isEmpty()) {
-                // Check if the item has custom data and contains enchant_id
                 var customData = clicked.get(DataComponents.CUSTOM_DATA);
                 if (customData != null) {
                     CompoundTag tag = customData.copyTag();
@@ -53,7 +69,7 @@ public class EnchantmentCapGUIMixin {
             return;
         }
 
-        // Adjuster GUI (updates in place)
+        // Adjuster GUI (unchanged)
         if (chestMenu.getContainer() instanceof EnchantmentCapGUI.AdjusterContainer adjuster) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
@@ -63,20 +79,19 @@ public class EnchantmentCapGUIMixin {
             int current = adjuster.getCurrentCap();
             int maxPossible = adjuster.getMaxPossible();
 
-            if (slot == 11) {               // -1
+            if (slot == 11) {
                 current = Math.max(0, current - 1);
-            } else if (slot == 15) {        // +1
+            } else if (slot == 15) {
                 current = Math.min(maxPossible, current + 1);
-            } else if (slot == 22) {        // Remove cap
+            } else if (slot == 22) {
                 current = 0;
-            } else if (slot == 26) {        // Back
+            } else if (slot == 26) {
                 this.player.level().getServer().execute(() -> EnchantmentCapGUI.openMainMenu(this.player));
                 return;
             } else {
                 return;
             }
 
-            // Update config
             if (current == 0) {
                 LifestealConfigManager.getInstance().enchantmentCaps.remove(enchId);
             } else {
@@ -84,11 +99,22 @@ public class EnchantmentCapGUIMixin {
             }
             LifestealConfigManager.save(this.player.level().getServer());
 
-            // Update the adjuster container in place
             adjuster.setCurrentCap(current);
             adjuster.updateDisplay();
             chestMenu.sendAllDataToRemote();
             this.player.sendSystemMessage(Component.literal("§aCap for " + enchId + " set to " + current));
         }
+    }
+
+    // Helper methods to call the static pagination methods in EnchantmentCapGUI
+    private static void changeLeftPage(ServerPlayer player, int delta) {
+        // We'll add these methods to EnchantmentCapGUI (they are already there)
+        // Actually we need to make them accessible. We'll implement them directly here or add public static methods.
+        // For simplicity, we'll call a new method in EnchantmentCapGUI.
+        EnchantmentCapGUI.changeLeftPage(player, delta);
+    }
+
+    private static void changeRightPage(ServerPlayer player, int delta) {
+        EnchantmentCapGUI.changeRightPage(player, delta);
     }
 }
