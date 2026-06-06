@@ -34,14 +34,18 @@ public class DynamicCraftingMixin {
 
         // Check against dynamic Custom Heart Grid blueprint rules
         if (LifestealConfig.heartRecipeEnabled && lifesteal$matchesMatrix(craftingContainer, LifestealConfig.heartRecipeMatrix)) {
-            if (LifestealConfig.limitHeartCraftingByHealth) {
-                double currentHearts = HeartManager.getMaxHealth(serverPlayer);
-                if (currentHearts < LifestealConfig.minHeartsToCraft || currentHearts > LifestealConfig.maxHeartsToCraft) {
-                    serverPlayer.sendOverlayMessage(Component.literal("§cYour current health limits prevent crafting hearts!"));
-                    resultContainer.setItem(0, ItemStack.EMPTY);
-                    menu.broadcastChanges();
-                    return;
-                }
+            double playerHearts = HeartManager.getMaxHealth(serverPlayer) / 2.0;
+            double maxCraftHearts = LifestealConfig.maxHeartsToCraft / 2.0;
+            
+            // If player has >= maxCraftHearts, they cannot craft more hearts
+            if (playerHearts >= maxCraftHearts) {
+                serverPlayer.sendOverlayMessage(Component.literal(
+                    "§cCannot craft hearts - you already have " + playerHearts + 
+                    " hearts (crafting limit: " + maxCraftHearts + " hearts)!"
+                ));
+                resultContainer.setItem(0, ItemStack.EMPTY);
+                menu.broadcastChanges();
+                return;
             }
             resultContainer.setItem(0, ServerItemHelper.createHeart());
             menu.broadcastChanges();

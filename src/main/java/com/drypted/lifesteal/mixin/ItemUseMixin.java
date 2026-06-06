@@ -4,8 +4,6 @@ import com.drypted.lifesteal.api.HeartManager;
 import com.drypted.lifesteal.api.ServerItemHelper;
 import com.drypted.lifesteal.config.LifestealConfig;
 import com.drypted.lifesteal.gui.ReviveGUI;
-
-// Add your ReviveGUI import here later
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -30,27 +28,27 @@ public class ItemUseMixin {
 
         // --- HEART LOGIC ---
         if (ServerItemHelper.isAuthenticHeart(heldItem)) {
-            double currentMax = HeartManager.getMaxHealth(serverPlayer);
+            double currentHearts = HeartManager.getMaxHealth(serverPlayer) / 2.0;
+            double absoluteMaxHearts = LifestealConfig.maxHearts / 2.0;
 
-            if (currentMax < LifestealConfig.maxHearts) {
-                HeartManager.setMaxHealth(serverPlayer, currentMax + 2);
+            if (currentHearts < absoluteMaxHearts) {
+                // Can consume heart (adds 1 heart)
+                HeartManager.setMaxHealth(serverPlayer, (currentHearts + 1) * 2.0);
                 if (!serverPlayer.getAbilities().instabuild) {
                     heldItem.shrink(1);
                 }
+                serverPlayer.sendSystemMessage(Component.literal("§aYou gained 1 heart! Now at " + (currentHearts + 1) + "/" + absoluteMaxHearts + " hearts."));
                 cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
             } else {
-                serverPlayer.sendOverlayMessage(Component.literal("§cYou are at maximum health!"));
+                serverPlayer.sendOverlayMessage(Component.literal("§cYou are at the absolute maximum (" + absoluteMaxHearts + " hearts)!"));
                 cir.setReturnValue(InteractionResult.FAIL);
             }
             return;
         }
 
-        // --- BEACON LOGIC ---
+        // --- BEACON LOGIC (unchanged) ---
         if (ServerItemHelper.isAuthenticBeacon(heldItem)) {
-            // Open the Revive GUI
             ReviveGUI.open(serverPlayer);
-            
-            // Consume the beacon ONLY after a successful revive inside the GUI logic.
             cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
         }
     }

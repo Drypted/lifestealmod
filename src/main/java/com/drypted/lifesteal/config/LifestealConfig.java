@@ -5,18 +5,23 @@ import net.minecraft.world.item.ItemStack;
 public class LifestealConfig {
     public static boolean banOnZeroHearts = true;
     public static boolean loseHeartsByNaturalCauses = false;
-    public static double maxHearts = 40.0; 
-    public static double reviveAtHearts = 10.0; 
-
-    // --- RECIPE & GUI CONFIGURATIONS ---
+    
+    // Absolute maximum hearts a player can have (hard cap)
+    public static double maxHearts = 40.0;        // 20 hearts (40 HP)
+    
+    // Minimum hearts a player is revived with
+    public static double reviveAtHearts = 20.0;   // 10 hearts (20 HP)
+    
+    // Recipe toggles
     public static boolean heartRecipeEnabled = true;
     public static boolean beaconRecipeEnabled = true;
     
-    public static boolean limitHeartCraftingByHealth = false;
-    public static double minHeartsToCraft = 2.0;
-    public static double maxHeartsToCraft = 40.0;
-
-    // Fixed arrays for 3x3 matrices
+    // Crafting limit - players with >= this many hearts cannot craft heart items
+    public static double maxHeartsToCraft = 16.0; // 8 hearts (16 HP)
+    
+    public static boolean broadcastElimination = true;
+    
+    // Recipe matrices
     public static ItemStack[] heartRecipeMatrix = new ItemStack[9];
     public static ItemStack[] beaconRecipeMatrix = new ItemStack[9];
 

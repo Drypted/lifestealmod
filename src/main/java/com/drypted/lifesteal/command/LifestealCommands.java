@@ -3,6 +3,7 @@ package com.drypted.lifesteal.command;
 import com.drypted.lifesteal.api.HeartManager;
 import com.drypted.lifesteal.api.ServerItemHelper;
 import com.drypted.lifesteal.config.LifestealConfig;
+import com.drypted.lifesteal.config.LifestealConfigManager;
 import com.drypted.lifesteal.gui.RecipeGUI;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
@@ -226,12 +227,27 @@ public class LifestealCommands {
                         })
                     )
                 )
-                // maxHearts
+                // maxHearts (absolute limit)
                 .then(Commands.literal("maxHearts")
                     .then(Commands.argument("value", DoubleArgumentType.doubleArg(2.0, 200.0))
                         .executes(context -> {
-                            LifestealConfig.maxHearts = DoubleArgumentType.getDouble(context, "value");
-                            context.getSource().sendSuccess(() -> Component.literal("§aConfig altered: maxHearts set to " + LifestealConfig.maxHearts), true);
+                            double hearts = DoubleArgumentType.getDouble(context, "value");
+                            LifestealConfig.maxHearts = hearts * 2.0; // store as HP
+                            LifestealConfigManager.save(context.getSource().getServer());
+                            context.getSource().sendSuccess(() -> Component.literal("§aConfig saved: absolute max hearts = " + hearts + " hearts"), true);
+                            return 1;
+                        })
+                    )
+                )
+
+                // maxHeartsToCraft (crafting limit)
+                .then(Commands.literal("maxHeartsToCraft")
+                    .then(Commands.argument("value", DoubleArgumentType.doubleArg(2.0, 20.0))
+                        .executes(context -> {
+                            double hearts = DoubleArgumentType.getDouble(context, "value");
+                            LifestealConfig.maxHeartsToCraft = hearts * 2.0;
+                            LifestealConfigManager.save(context.getSource().getServer());
+                            context.getSource().sendSuccess(() -> Component.literal("§aConfig saved: max hearts to craft = " + hearts + " hearts"), true);
                             return 1;
                         })
                     )

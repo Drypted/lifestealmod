@@ -93,6 +93,10 @@ public class LifestealEvents {
     }
 
     private static void eliminatePlayer(ServerPlayer player) {
+        if (LifestealConfig.broadcastElimination) {
+            Component msg = Component.literal("§c" + player.getScoreboardName() + " has been eliminated (0 hearts)!");
+            player.level().getServer().getPlayerList().broadcastSystemMessage(msg, false);
+        }
         if (LifestealConfig.banOnZeroHearts) {
             // Option A: Permanent Ban
             GameProfile profile = player.getGameProfile();

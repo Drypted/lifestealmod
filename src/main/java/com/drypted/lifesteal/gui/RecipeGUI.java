@@ -25,7 +25,7 @@ public class RecipeGUI {
     }
 
     public static class ValueAdjusterContainer extends SimpleContainer {
-        private final String targetSetting; // "min" or "max"
+        private final String targetSetting; // only "max" now, but keep generic
         public ValueAdjusterContainer(String targetSetting) { super(27); this.targetSetting = targetSetting; }
         public String getTargetSetting() { return this.targetSetting; }
     }
@@ -70,11 +70,19 @@ public class RecipeGUI {
         SettingsContainer container = new SettingsContainer();
         for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
 
-        container.setItem(10, createGlass(LifestealConfig.heartRecipeEnabled ? Items.LIME_CONCRETE : Items.RED_CONCRETE, "§7Heart Crafting: " + (LifestealConfig.heartRecipeEnabled ? "§aENABLED" : "§cDISABLED")));
-        container.setItem(11, createGlass(LifestealConfig.beaconRecipeEnabled ? Items.LIME_CONCRETE : Items.RED_CONCRETE, "§7Beacon Crafting: " + (LifestealConfig.beaconRecipeEnabled ? "§aENABLED" : "§cDISABLED")));
-        container.setItem(13, createGlass(LifestealConfig.limitHeartCraftingByHealth ? Items.ENDER_EYE : Items.ENDER_PEARL, "§7Health Crafting Limits: " + (LifestealConfig.limitHeartCraftingByHealth ? "§aACTIVE" : "§cINACTIVE")));
-        container.setItem(14, createGlass(Items.CHIPPED_ANVIL, "§cMin Hearts to Craft: §e" + (LifestealConfig.minHeartsToCraft / 2.0) + " (Click to Edit)"));
-        container.setItem(15, createGlass(Items.ANVIL, "§aMax Hearts to Craft: §e" + (LifestealConfig.maxHeartsToCraft / 2.0) + " (Click to Edit)"));
+        double maxCraftHearts = LifestealConfig.maxHeartsToCraft / 2.0;
+        double absoluteMaxHearts = LifestealConfig.maxHearts / 2.0;
+
+        container.setItem(10, createGlass(LifestealConfig.heartRecipeEnabled ? Items.LIME_CONCRETE : Items.RED_CONCRETE,
+                "§7Heart Crafting: " + (LifestealConfig.heartRecipeEnabled ? "§aENABLED" : "§cDISABLED")));
+        container.setItem(11, createGlass(LifestealConfig.beaconRecipeEnabled ? Items.LIME_CONCRETE : Items.RED_CONCRETE,
+                "§7Beacon Crafting: " + (LifestealConfig.beaconRecipeEnabled ? "§aENABLED" : "§cDISABLED")));
+        
+        container.setItem(13, createGlass(Items.ANVIL,
+                "§6Max Hearts to Craft: §e" + maxCraftHearts + " hearts §7(Click to Edit)"));
+        container.setItem(14, createGlass(Items.NETHERITE_INGOT,
+                "§cAbsolute Max Hearts: §e" + absoluteMaxHearts + " hearts §7(Command only)"));
+        
         container.setItem(22, createGlass(Items.ARROW, "§eBack to Menu"));
 
         player.openMenu(new SimpleMenuProvider(
@@ -83,26 +91,27 @@ public class RecipeGUI {
         ));
     }
 
-    public static void openValueAdjuster(ServerPlayer player, String settingType) {
-        ValueAdjusterContainer container = new ValueAdjusterContainer(settingType);
+    public static void openMaxHeartsAdjuster(ServerPlayer player) {
+        ValueAdjusterContainer container = new ValueAdjusterContainer("max");
         for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
 
-        double val = settingType.equals("min") ? LifestealConfig.minHeartsToCraft : LifestealConfig.maxHeartsToCraft;
+        double currentHearts = LifestealConfig.maxHeartsToCraft / 2.0;
+        double maxAllowedHearts = LifestealConfig.maxHearts / 2.0; // server-wide max
 
-        container.setItem(10, createGlass(Items.REDSTONE_BLOCK, "§c-1.0 Heart (-2 HP)"));
+        container.setItem(10, createGlass(Items.REDSTONE_BLOCK, "§c-1 Heart (-2 HP)"));
         container.setItem(11, createGlass(Items.RED_STAINED_GLASS_PANE, "§e-0.5 Heart (-1 HP)"));
-        
-        ItemStack display = createGlass(Items.PAPER, "§eCurrent Boundary Value:");
-        display.set(DataComponents.CUSTOM_NAME, Component.literal("§eTarget: §f" + settingType.toUpperCase() + " §7| Value: §a" + (val / 2.0) + " Hearts"));
+
+        ItemStack display = createGlass(Items.PAPER, "§eCurrent Max Craft Limit:");
+        display.set(DataComponents.CUSTOM_NAME, Component.literal("§eLimit: §a" + currentHearts + " hearts"));
         container.setItem(13, display);
 
         container.setItem(15, createGlass(Items.LIME_STAINED_GLASS_PANE, "§e+0.5 Heart (+1 HP)"));
-        container.setItem(16, createGlass(Items.EMERALD_BLOCK, "§a+1.0 Heart (+2 HP)"));
+        container.setItem(16, createGlass(Items.EMERALD_BLOCK, "§a+1 Heart (+2 HP)"));
         container.setItem(22, createGlass(Items.ARROW, "§eReturn to Settings"));
 
         player.openMenu(new SimpleMenuProvider(
             (id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x3, id, inv, container, 3),
-            Component.literal("Adjust " + settingType.toUpperCase() + " Constraint")
+            Component.literal("Adjust Maximum Hearts for Crafting")
         ));
     }
 
