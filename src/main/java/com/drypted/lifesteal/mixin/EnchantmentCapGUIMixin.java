@@ -32,15 +32,20 @@ public class EnchantmentCapGUIMixin {
             chestMenu.sendAllDataToRemote();
 
             int slot = packet.slotNum();
-            if (slot >= 27 && slot < 54) {
-                ItemStack clicked = chestMenu.getContainer().getItem(slot);
-                if (clicked.is(Items.ENCHANTED_BOOK)) {
-                    CompoundTag tag = clicked.get(DataComponents.CUSTOM_DATA).copyTag();
+            ItemStack clicked = chestMenu.getContainer().getItem(slot);
+            if (!clicked.isEmpty()) {
+                // Check if the item has custom data and contains enchant_id
+                var customData = clicked.get(DataComponents.CUSTOM_DATA);
+                if (customData != null) {
+                    CompoundTag tag = customData.copyTag();
                     if (tag != null && tag.contains("enchant_id")) {
-                        // getString returns Optional<String> in this version
                         String enchId = tag.getString("enchant_id").orElse("");
                         if (!enchId.isEmpty()) {
-                            this.player.level().getServer().execute(() -> EnchantmentCapGUI.openAdjuster(this.player, enchId));
+                            int currentCap = LifestealConfigManager.getInstance().enchantmentCaps.getOrDefault(enchId, 0);
+                            int maxPossible = EnchantmentCapGUI.getMaxPossibleLevel(this.player, enchId);
+                            this.player.level().getServer().execute(() ->
+                                EnchantmentCapGUI.openAdjuster(this.player, enchId, currentCap, maxPossible)
+                            );
                         }
                     }
                 }
@@ -48,35 +53,42 @@ public class EnchantmentCapGUIMixin {
             return;
         }
 
-        // Adjuster GUI
+        // Adjuster GUI (updates in place)
         if (chestMenu.getContainer() instanceof EnchantmentCapGUI.AdjusterContainer adjuster) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
-            chestMenu.sendAllDataToRemote();
 
             int slot = packet.slotNum();
             String enchId = adjuster.getEnchantmentId();
-            int current = LifestealConfigManager.getInstance().enchantmentCaps.getOrDefault(enchId, 0);
-            int maxPossible = EnchantmentCapGUI.getMaxPossibleLevel(this.player, enchId);
+            int current = adjuster.getCurrentCap();
+            int maxPossible = adjuster.getMaxPossible();
 
-            if (slot == 10) current = Math.max(0, current - 10);
-            else if (slot == 11) current = Math.max(0, current - 1);
-            else if (slot == 15) current = Math.min(maxPossible, current + 1);
-            else if (slot == 16) current = Math.min(maxPossible, current + 10);
-            else if (slot == 22) current = 0;
-            else if (slot == 26) {
+            if (slot == 11) {               // -1
+                current = Math.max(0, current - 1);
+            } else if (slot == 15) {        // +1
+                current = Math.min(maxPossible, current + 1);
+            } else if (slot == 22) {        // Remove cap
+                current = 0;
+            } else if (slot == 26) {        // Back
                 this.player.level().getServer().execute(() -> EnchantmentCapGUI.openMainMenu(this.player));
                 return;
-            } else return;
+            } else {
+                return;
+            }
 
+            // Update config
             if (current == 0) {
                 LifestealConfigManager.getInstance().enchantmentCaps.remove(enchId);
             } else {
                 LifestealConfigManager.getInstance().enchantmentCaps.put(enchId, current);
             }
             LifestealConfigManager.save(this.player.level().getServer());
+
+            // Update the adjuster container in place
+            adjuster.setCurrentCap(current);
+            adjuster.updateDisplay();
+            chestMenu.sendAllDataToRemote();
             this.player.sendSystemMessage(Component.literal("§aCap for " + enchId + " set to " + current));
-            this.player.level().getServer().execute(() -> EnchantmentCapGUI.openAdjuster(this.player, enchId));
         }
     }
 }

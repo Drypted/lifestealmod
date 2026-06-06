@@ -51,6 +51,7 @@ public class LifestealConfigManager {
     private LifestealConfigManager() {
         Arrays.fill(heartRecipeIds, "");
         Arrays.fill(beaconRecipeIds, "");
+        enchantmentCaps = new HashMap<>();
     }
 
     public static LifestealConfigManager getInstance() {
@@ -60,15 +61,12 @@ public class LifestealConfigManager {
         return INSTANCE;
     }
 
-    public static void load(MinecraftServer server) {
-        currentServer = server;
-        
-        if (INSTANCE.enchantmentCaps == null) INSTANCE.enchantmentCaps = new HashMap<>();
-        
-        // Create instance first if needed
+     public static void load(MinecraftServer server) {
+        // Ensure instance exists
         if (INSTANCE == null) {
             INSTANCE = new LifestealConfigManager();
         }
+        currentServer = server;
         
         Path configPath = server.getWorldPath(LevelResource.ROOT).resolve("lifesteal_config.json");
         
@@ -81,11 +79,14 @@ public class LifestealConfigManager {
                 LOGGER.info("Loaded Lifesteal config from {}", configPath);
             } catch (Exception e) {
                 LOGGER.error("Failed to load config, using defaults", e);
-                // INSTANCE already has default values from constructor
+                // Keep the default INSTANCE (already created)
             }
         }
         
-        // Ensure arrays are never null (important after loading)
+        // Post‑load safety: ensure maps and arrays are not null
+        if (INSTANCE.enchantmentCaps == null) {
+            INSTANCE.enchantmentCaps = new HashMap<>();
+        }
         if (INSTANCE.heartRecipeIds == null) {
             INSTANCE.heartRecipeIds = new String[9];
         }
@@ -93,14 +94,7 @@ public class LifestealConfigManager {
             INSTANCE.beaconRecipeIds = new String[9];
         }
         for (int i = 0; i < 9; i++) {
-            if (i >= INSTANCE.heartRecipeIds.length) {
-                // Recreate array if size is wrong
-                String[] newArray = new String[9];
-                System.arraycopy(INSTANCE.heartRecipeIds, 0, newArray, 0, Math.min(INSTANCE.heartRecipeIds.length, 9));
-                INSTANCE.heartRecipeIds = newArray;
-            }
             if (INSTANCE.heartRecipeIds[i] == null) INSTANCE.heartRecipeIds[i] = "";
-            
             if (i >= INSTANCE.beaconRecipeIds.length) {
                 String[] newArray = new String[9];
                 System.arraycopy(INSTANCE.beaconRecipeIds, 0, newArray, 0, Math.min(INSTANCE.beaconRecipeIds.length, 9));
@@ -109,7 +103,7 @@ public class LifestealConfigManager {
             if (INSTANCE.beaconRecipeIds[i] == null) INSTANCE.beaconRecipeIds[i] = "";
         }
         
-        // Convert ID strings back to ItemStacks for the static config
+        // Convert ID strings to ItemStacks
         convertIdsToItemStacks();
         
         // Copy to legacy static fields
