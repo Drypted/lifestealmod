@@ -15,80 +15,106 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Arrays;
-
 @Mixin(ServerGamePacketListenerImpl.class)
 public class RecipeGUIMixin {
 
     @Shadow public ServerPlayer player;
 
     @Inject(method = "handleContainerClick", at = @At("HEAD"), cancellable = true)
-    private void onRecipeGuiClick(ServerboundContainerClickPacket packet, CallbackInfo ci) {
+    private void interceptSecureRecipeMenus(ServerboundContainerClickPacket packet, CallbackInfo ci) {
         if (!(this.player.containerMenu instanceof ChestMenu chestMenu)) return;
 
-        // 1. MAIN MENU INTERACTION
+        // --- 1. MAIN MENU HANDLING ---
         if (chestMenu.getContainer() instanceof RecipeGUI.MainMenuContainer) {
-            ci.cancel(); 
+            ci.cancel();
+            chestMenu.setCarried(ItemStack.EMPTY);
+            chestMenu.sendAllDataToRemote();
+            
             int slot = packet.slotNum();
-            if (slot == 11) RecipeGUI.openRecipeEditor(this.player, "heart");
-            if (slot == 13) RecipeGUI.openRecipeEditor(this.player, "beacon");
-            if (slot == 15) RecipeGUI.openSettingsMenu(this.player);
+            if (slot == 11) this.player.level().getServer().execute(() -> RecipeGUI.openRecipeEditor(this.player, "heart"));
+            if (slot == 13) this.player.level().getServer().execute(() -> RecipeGUI.openRecipeEditor(this.player, "beacon"));
+            if (slot == 15) this.player.level().getServer().execute(() -> RecipeGUI.openSettingsMenu(this.player));
             return;
         }
 
-        // 2. SETTINGS MENU INTERACTION
+        // --- 2. SETTINGS MENU HANDLING ---
         if (chestMenu.getContainer() instanceof RecipeGUI.SettingsContainer) {
             ci.cancel();
+            chestMenu.setCarried(ItemStack.EMPTY);
+            chestMenu.sendAllDataToRemote();
+
             int slot = packet.slotNum();
             if (slot == 10) {
                 LifestealConfig.heartRecipeEnabled = !LifestealConfig.heartRecipeEnabled;
-                RecipeGUI.openSettingsMenu(this.player);
+                this.player.level().getServer().execute(() -> RecipeGUI.openSettingsMenu(this.player));
             } else if (slot == 11) {
                 LifestealConfig.beaconRecipeEnabled = !LifestealConfig.beaconRecipeEnabled;
-                RecipeGUI.openSettingsMenu(this.player);
+                this.player.level().getServer().execute(() -> RecipeGUI.openSettingsMenu(this.player));
             } else if (slot == 13) {
                 LifestealConfig.limitHeartCraftingByHealth = !LifestealConfig.limitHeartCraftingByHealth;
-                RecipeGUI.openSettingsMenu(this.player);
+                this.player.level().getServer().execute(() -> RecipeGUI.openSettingsMenu(this.player));
             } else if (slot == 14) {
-                // Adjust minimum crafting constraints
-                LifestealConfig.minHeartsToCraft = LifestealConfig.minHeartsToCraft >= 40.0 ? 2.0 : LifestealConfig.minHeartsToCraft + 2.0;
-                RecipeGUI.openSettingsMenu(this.player);
+                this.player.level().getServer().execute(() -> RecipeGUI.openValueAdjuster(this.player, "min"));
             } else if (slot == 15) {
-                // Adjust maximum crafting constraints
-                LifestealConfig.maxHeartsToCraft = LifestealConfig.maxHeartsToCraft >= 40.0 ? 2.0 : LifestealConfig.maxHeartsToCraft + 2.0;
-                RecipeGUI.openSettingsMenu(this.player);
+                this.player.level().getServer().execute(() -> RecipeGUI.openValueAdjuster(this.player, "max"));
             } else if (slot == 22) {
-                RecipeGUI.openMainMenu(this.player);
+                this.player.level().getServer().execute(() -> RecipeGUI.openMainMenu(this.player));
             }
             return;
         }
 
-        // 3. RECIPE MATRIX EDITOR INTERACTION
-        if (chestMenu.getContainer() instanceof RecipeGUI.EditorContainer editorContainer) {
+        // --- 3. VALUE INCREMENT/DECREMENT ADJ SUB-GUI ---
+        if (chestMenu.getContainer() instanceof RecipeGUI.ValueAdjusterContainer adjuster) {
+            ci.cancel();
+            chestMenu.setCarried(ItemStack.EMPTY);
+            chestMenu.sendAllDataToRemote();
+
             int slot = packet.slotNum();
-            
-            // Check if slot index falls outside top chest container interface bounds
-            if (slot < 0 || slot >= editorContainer.getContainerSize()) return;
+            String target = adjuster.getTargetSetting();
+            double currentVal = target.equals("min") ? LifestealConfig.minHeartsToCraft : LifestealConfig.maxHeartsToCraft;
 
-            int[] openSlots = {10, 11, 12, 19, 20, 21, 28, 29, 30};
-            boolean isCraftingSlot = Arrays.stream(openSlots).anyMatch(x -> x == slot);
-
-            if (isCraftingSlot) {
-                // Allow user item placement/shuffling transitions freely inside grid
+            if (slot == 10) currentVal = Math.max(2.0, currentVal - 2.0);      // -1 Heart
+            else if (slot == 11) currentVal = Math.max(2.0, currentVal - 1.0); // -0.5 Heart
+            else if (slot == 15) currentVal = Math.min(200.0, currentVal + 1.0); // +0.5 Heart
+            else if (slot == 16) currentVal = Math.min(200.0, currentVal + 2.0); // +1.0 Heart
+            else if (slot == 22) {
+                this.player.level().getServer().execute(() -> RecipeGUI.openSettingsMenu(this.player));
+                return;
+            } else {
                 return;
             }
 
-            // Lock structural interfaces down safely
-            ci.cancel();
+            if (target.equals("min")) LifestealConfig.minHeartsToCraft = currentVal;
+            else LifestealConfig.maxHeartsToCraft = currentVal;
 
-            if (slot == 45) { // SAVE ACTION BUTTON
-                var matrixTarget = editorContainer.getRecipeTarget().equals("heart") ? LifestealConfig.heartRecipeMatrix : LifestealConfig.beaconRecipeMatrix;
+            this.player.level().getServer().execute(() -> RecipeGUI.openValueAdjuster(this.player, target));
+            return;
+        }
+
+        // --- 4. RECIPE MATRIX EDITOR HANDLING ---
+        if (chestMenu.getContainer() instanceof RecipeGUI.EditorContainer editor) {
+            int slot = packet.slotNum();
+            if (slot < 0 || slot >= editor.getContainerSize()) return;
+
+            int[] editableSlots = {10, 11, 12, 19, 20, 21, 28, 29, 30};
+            boolean isGrid = Arrays.stream(editableSlots).anyMatch(x -> x == slot);
+
+            if (isGrid) return; // Allow normal items to be moved here
+
+            // Freeze background glass, functional buttons, and preview results completely
+            ci.cancel();
+            chestMenu.setCarried(ItemStack.EMPTY);
+            chestMenu.sendAllDataToRemote();
+
+            if (slot == 45) { // SAVE ACTION
+                ItemStack[] targetMatrix = editor.getTarget().equals("heart") ? LifestealConfig.heartRecipeMatrix : LifestealConfig.beaconRecipeMatrix;
                 for (int i = 0; i < 9; i++) {
-                    matrixTarget.set(i, editorContainer.getItem(openSlots[i]).copy());
+                    targetMatrix[i] = editor.getItem(editableSlots[i]).copy();
                 }
-                this.player.sendSystemMessage(Component.literal("§aRecipe mapping update saved successfully."));
-                RecipeGUI.openMainMenu(this.player);
-            } else if (slot == 49 || slot == 53) { // CANCEL OR GO BACK
-                RecipeGUI.openMainMenu(this.player);
+                this.player.sendSystemMessage(Component.literal("§aCustom matrix adjustments updated successfully."));
+                this.player.level().getServer().execute(() -> RecipeGUI.openMainMenu(this.player));
+            } else if (slot == 49 || slot == 53) { // CANCEL / GO BACK
+                this.player.level().getServer().execute(() -> RecipeGUI.openMainMenu(this.player));
             }
         }
     }

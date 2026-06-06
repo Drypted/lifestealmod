@@ -12,47 +12,31 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import java.util.List;
 
 public class RecipeGUI {
 
-    // --- CUSTOM SEPARATE CONTAINER CLASSES FOR IDENTIFICATION ---
     public static class MainMenuContainer extends SimpleContainer { public MainMenuContainer() { super(27); } }
     public static class SettingsContainer extends SimpleContainer { public SettingsContainer() { super(27); } }
     
     public static class EditorContainer extends SimpleContainer {
-        private final String recipeTarget; // "heart" or "beacon"
-        public EditorContainer(String recipeTarget) {
-            super(54);
-            this.recipeTarget = recipeTarget;
-        }
-        public String getRecipeTarget() { return this.recipeTarget; }
+        private final String target;
+        public EditorContainer(String target) { super(54); this.target = target; }
+        public String getTarget() { return this.target; }
     }
 
-    // --- OPEN MENU METHODS ---
+    public static class ValueAdjusterContainer extends SimpleContainer {
+        private final String targetSetting; // "min" or "max"
+        public ValueAdjusterContainer(String targetSetting) { super(27); this.targetSetting = targetSetting; }
+        public String getTargetSetting() { return this.targetSetting; }
+    }
 
     public static void openMainMenu(ServerPlayer player) {
         MainMenuContainer container = new MainMenuContainer();
-        
-        // Fill background with gray glass
-        for (int i = 0; i < 27; i++) {
-            container.setItem(i, createGuiGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
-        }
+        for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
 
-        // Heart Recipe configuration button
-        ItemStack heartItem = ServerItemHelper.createHeart();
-        heartItem.set(DataComponents.CUSTOM_NAME, Component.literal("§cConfigure Heart Recipe"));
-        container.setItem(11, heartItem);
-
-        // Revive Beacon Recipe configuration button
-        ItemStack beaconItem = ServerItemHelper.createReviveBeacon();
-        beaconItem.set(DataComponents.CUSTOM_NAME, Component.literal("§bConfigure Revive Beacon Recipe"));
-        container.setItem(13, beaconItem);
-
-        // Settings Button
-        ItemStack settingsItem = new ItemStack(Items.COMPARATOR);
-        settingsItem.set(DataComponents.CUSTOM_NAME, Component.literal("§eRecipe & Crafting Settings"));
-        container.setItem(15, settingsItem);
+        container.setItem(11, createItemWithName(ServerItemHelper.createHeart(), "§cConfigure Heart Recipe"));
+        container.setItem(13, createItemWithName(ServerItemHelper.createReviveBeacon(), "§bConfigure Revive Beacon Recipe"));
+        container.setItem(15, createGlass(Items.COMPARATOR, "§eRecipe & Crafting Settings"));
 
         player.openMenu(new SimpleMenuProvider(
             (id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x3, id, inv, container, 3),
@@ -62,27 +46,19 @@ public class RecipeGUI {
 
     public static void openRecipeEditor(ServerPlayer player, String target) {
         EditorContainer container = new EditorContainer(target);
-        List<ItemStack> currentMatrix = target.equals("heart") ? LifestealConfig.heartRecipeMatrix : LifestealConfig.beaconRecipeMatrix;
+        ItemStack[] currentMatrix = target.equals("heart") ? LifestealConfig.heartRecipeMatrix : LifestealConfig.beaconRecipeMatrix;
 
-        // Build Frame Blueprint
-        for (int i = 0; i < 54; i++) {
-            container.setItem(i, createGuiGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
-        }
+        for (int i = 0; i < 54; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
 
-        // Map existing recipe items into the 3x3 active editing fields
         int[] gridSlots = {10, 11, 12, 19, 20, 21, 28, 29, 30};
         for (int i = 0; i < 9; i++) {
-            container.setItem(gridSlots[i], currentMatrix.get(i).copy());
+            container.setItem(gridSlots[i], currentMatrix[i].copy());
         }
 
-        // Display output element layout
-        ItemStack visualResult = target.equals("heart") ? ServerItemHelper.createHeart() : ServerItemHelper.createReviveBeacon();
-        container.setItem(23, visualResult);
-
-        // Functional action navigation items
-        container.setItem(45, createGuiGlass(Items.EMERALD_BLOCK, "§a§lSAVE RECIPE"));
-        container.setItem(49, createGuiGlass(Items.ARROW, "§e§lGO BACK"));
-        container.setItem(53, createGuiGlass(Items.REDSTONE_BLOCK, "§c§lDISCARD CHANGES"));
+        container.setItem(23, target.equals("heart") ? ServerItemHelper.createHeart() : ServerItemHelper.createReviveBeacon());
+        container.setItem(45, createGlass(Items.EMERALD_BLOCK, "§a§lSAVE RECIPE"));
+        container.setItem(49, createGlass(Items.ARROW, "§e§lGO BACK"));
+        container.setItem(53, createGlass(Items.REDSTONE_BLOCK, "§c§lDISCARD CHANGES"));
 
         player.openMenu(new SimpleMenuProvider(
             (id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x6, id, inv, container, 6),
@@ -92,38 +68,14 @@ public class RecipeGUI {
 
     public static void openSettingsMenu(ServerPlayer player) {
         SettingsContainer container = new SettingsContainer();
+        for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
 
-        for (int i = 0; i < 27; i++) {
-            container.setItem(i, createGuiGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
-        }
-
-        // Toggle Heart Recipe Component
-        ItemStack toggleHeart = new ItemStack(LifestealConfig.heartRecipeEnabled ? Items.LIME_CONCRETE : Items.RED_CONCRETE);
-        toggleHeart.set(DataComponents.CUSTOM_NAME, Component.literal("§7Heart Crafting: " + (LifestealConfig.heartRecipeEnabled ? "§aENABLED" : "§cDISABLED")));
-        container.setItem(10, toggleHeart);
-
-        // Toggle Beacon Recipe Component
-        ItemStack toggleBeacon = new ItemStack(LifestealConfig.beaconRecipeEnabled ? Items.LIME_CONCRETE : Items.RED_CONCRETE);
-        toggleBeacon.set(DataComponents.CUSTOM_NAME, Component.literal("§7Beacon Crafting: " + (LifestealConfig.beaconRecipeEnabled ? "§aENABLED" : "§cDISABLED")));
-        container.setItem(11, toggleBeacon);
-
-        // Toggle Restrictions By Health Status
-        ItemStack toggleLimit = new ItemStack(LifestealConfig.limitHeartCraftingByHealth ? Items.ENDER_EYE : Items.ENDER_PEARL);
-        toggleLimit.set(DataComponents.CUSTOM_NAME, Component.literal("§7Health Crafting Limits: " + (LifestealConfig.limitHeartCraftingByHealth ? "§aACTIVE" : "§cINACTIVE")));
-        container.setItem(13, toggleLimit);
-
-        // Edit Minimum Limits Configuration
-        ItemStack minLimit = new ItemStack(Items.CHIPPED_ANVIL);
-        minLimit.set(DataComponents.CUSTOM_NAME, Component.literal("§cMin Hearts to Craft: §e" + (LifestealConfig.minHeartsToCraft / 2.0)));
-        container.setItem(14, minLimit);
-
-        // Edit Maximum Limits Configuration
-        ItemStack maxLimit = new ItemStack(Items.ANVIL);
-        maxLimit.set(DataComponents.CUSTOM_NAME, Component.literal("§aMax Hearts to Craft: §e" + (LifestealConfig.maxHeartsToCraft / 2.0)));
-        container.setItem(15, maxLimit);
-
-        // Return Navigation Vector
-        container.setItem(22, createGuiGlass(Items.ARROW, "§eBack to Menu"));
+        container.setItem(10, createGlass(LifestealConfig.heartRecipeEnabled ? Items.LIME_CONCRETE : Items.RED_CONCRETE, "§7Heart Crafting: " + (LifestealConfig.heartRecipeEnabled ? "§aENABLED" : "§cDISABLED")));
+        container.setItem(11, createGlass(LifestealConfig.beaconRecipeEnabled ? Items.LIME_CONCRETE : Items.RED_CONCRETE, "§7Beacon Crafting: " + (LifestealConfig.beaconRecipeEnabled ? "§aENABLED" : "§cDISABLED")));
+        container.setItem(13, createGlass(LifestealConfig.limitHeartCraftingByHealth ? Items.ENDER_EYE : Items.ENDER_PEARL, "§7Health Crafting Limits: " + (LifestealConfig.limitHeartCraftingByHealth ? "§aACTIVE" : "§cINACTIVE")));
+        container.setItem(14, createGlass(Items.CHIPPED_ANVIL, "§cMin Hearts to Craft: §e" + (LifestealConfig.minHeartsToCraft / 2.0) + " (Click to Edit)"));
+        container.setItem(15, createGlass(Items.ANVIL, "§aMax Hearts to Craft: §e" + (LifestealConfig.maxHeartsToCraft / 2.0) + " (Click to Edit)"));
+        container.setItem(22, createGlass(Items.ARROW, "§eBack to Menu"));
 
         player.openMenu(new SimpleMenuProvider(
             (id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x3, id, inv, container, 3),
@@ -131,13 +83,37 @@ public class RecipeGUI {
         ));
     }
 
-    
-    private static ItemStack createGuiGlass(Item item, String name) {
+    public static void openValueAdjuster(ServerPlayer player, String settingType) {
+        ValueAdjusterContainer container = new ValueAdjusterContainer(settingType);
+        for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
+
+        double val = settingType.equals("min") ? LifestealConfig.minHeartsToCraft : LifestealConfig.maxHeartsToCraft;
+
+        container.setItem(10, createGlass(Items.REDSTONE_BLOCK, "§c-1.0 Heart (-2 HP)"));
+        container.setItem(11, createGlass(Items.RED_STAINED_GLASS_PANE, "§e-0.5 Heart (-1 HP)"));
+        
+        ItemStack display = createGlass(Items.PAPER, "§eCurrent Boundary Value:");
+        display.set(DataComponents.CUSTOM_NAME, Component.literal("§eTarget: §f" + settingType.toUpperCase() + " §7| Value: §a" + (val / 2.0) + " Hearts"));
+        container.setItem(13, display);
+
+        container.setItem(15, createGlass(Items.LIME_STAINED_GLASS_PANE, "§e+0.5 Heart (+1 HP)"));
+        container.setItem(16, createGlass(Items.EMERALD_BLOCK, "§a+1.0 Heart (+2 HP)"));
+        container.setItem(22, createGlass(Items.ARROW, "§eReturn to Settings"));
+
+        player.openMenu(new SimpleMenuProvider(
+            (id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x3, id, inv, container, 3),
+            Component.literal("Adjust " + settingType.toUpperCase() + " Constraint")
+        ));
+    }
+
+    private static ItemStack createGlass(Item item, String name) {
         ItemStack stack = new ItemStack(item);
-        stack.set(
-            DataComponents.CUSTOM_NAME,
-            Component.literal(name).withStyle(s -> s.withItalic(false))
-        );
+        stack.set(DataComponents.CUSTOM_NAME, Component.literal(name).withStyle(s -> s.withItalic(false)));
+        return stack;
+    }
+
+    private static ItemStack createItemWithName(ItemStack stack, String name) {
+        stack.set(DataComponents.CUSTOM_NAME, Component.literal(name).withStyle(s -> s.withItalic(false)));
         return stack;
     }
 }
