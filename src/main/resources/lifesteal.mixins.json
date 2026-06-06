@@ -6,7 +6,8 @@
 		"ItemUseMixin",
 		"BlockPlaceMixin",
 		"ReviveGUIMixin",
-		"RecipeGUIMixin"
+		"RecipeGUIMixin",
+		"DynamicCraftingMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
