@@ -26,11 +26,11 @@ public class Lifesteal implements ModInitializer {
         LifestealEvents.register();
         LifestealCommands.register();
         
-        // Register server lifecycle events for config
-        ServerLifecycleEvents.SERVER_STARTED.register(server -> {
+
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             LifestealConfigManager.load(server);
         });
-        
+
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> {
             LifestealConfigManager.save(server);
         });

@@ -1,9 +1,6 @@
-// LIMITATION: This only stores the item type, not NBT data (custom names, enchantments, etc.)
-
 package com.drypted.lifesteal.config;
 
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -16,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -53,31 +49,56 @@ public class LifestealConfigManager {
     }
 
     public static LifestealConfigManager getInstance() {
-        if (INSTANCE == null) INSTANCE = new LifestealConfigManager();
+        if (INSTANCE == null) {
+            INSTANCE = new LifestealConfigManager();
+        }
         return INSTANCE;
     }
 
     public static void load(MinecraftServer server) {
         currentServer = server;
+        
+        // Create instance first if needed
+        if (INSTANCE == null) {
+            INSTANCE = new LifestealConfigManager();
+        }
+        
         Path configPath = server.getWorldPath(LevelResource.ROOT).resolve("lifesteal_config.json");
         
         if (Files.exists(configPath)) {
             try (Reader reader = Files.newBufferedReader(configPath)) {
-                INSTANCE = GSON.fromJson(reader, LifestealConfigManager.class);
+                LifestealConfigManager loaded = GSON.fromJson(reader, LifestealConfigManager.class);
+                if (loaded != null) {
+                    INSTANCE = loaded;
+                }
                 LOGGER.info("Loaded Lifesteal config from {}", configPath);
             } catch (Exception e) {
                 LOGGER.error("Failed to load config, using defaults", e);
-                INSTANCE = new LifestealConfigManager();
+                // INSTANCE already has default values from constructor
             }
-        } else {
-            INSTANCE = new LifestealConfigManager();
         }
         
-        // Ensure arrays are never null
-        if (INSTANCE.heartRecipeIds == null) INSTANCE.heartRecipeIds = new String[9];
-        if (INSTANCE.beaconRecipeIds == null) INSTANCE.beaconRecipeIds = new String[9];
+        // Ensure arrays are never null (important after loading)
+        if (INSTANCE.heartRecipeIds == null) {
+            INSTANCE.heartRecipeIds = new String[9];
+        }
+        if (INSTANCE.beaconRecipeIds == null) {
+            INSTANCE.beaconRecipeIds = new String[9];
+        }
         for (int i = 0; i < 9; i++) {
+            if (i >= INSTANCE.heartRecipeIds.length) {
+                // Recreate array if size is wrong
+                String[] newArray = new String[9];
+                System.arraycopy(INSTANCE.heartRecipeIds, 0, newArray, 0, Math.min(INSTANCE.heartRecipeIds.length, 9));
+                INSTANCE.heartRecipeIds = newArray;
+            }
             if (INSTANCE.heartRecipeIds[i] == null) INSTANCE.heartRecipeIds[i] = "";
+            
+            if (i >= INSTANCE.beaconRecipeIds.length) {
+                String[] newArray = new String[9];
+                System.arraycopy(INSTANCE.beaconRecipeIds, 0, newArray, 0, Math.min(INSTANCE.beaconRecipeIds.length, 9));
+                INSTANCE.beaconRecipeIds = newArray;
+            }
             if (INSTANCE.beaconRecipeIds[i] == null) INSTANCE.beaconRecipeIds[i] = "";
         }
         
@@ -101,14 +122,29 @@ public class LifestealConfigManager {
     }
     
     private static void convertIdsToItemStacks() {
+        if (INSTANCE == null) return;
+        
         // Convert heart recipe IDs to ItemStacks
         for (int i = 0; i < 9; i++) {
-            LifestealConfig.heartRecipeMatrix[i] = idToItemStack(INSTANCE.heartRecipeIds[i]);
-            LifestealConfig.beaconRecipeMatrix[i] = idToItemStack(INSTANCE.beaconRecipeIds[i]);
+            String heartId = (i < INSTANCE.heartRecipeIds.length) ? INSTANCE.heartRecipeIds[i] : "";
+            String beaconId = (i < INSTANCE.beaconRecipeIds.length) ? INSTANCE.beaconRecipeIds[i] : "";
+            
+            LifestealConfig.heartRecipeMatrix[i] = idToItemStack(heartId);
+            LifestealConfig.beaconRecipeMatrix[i] = idToItemStack(beaconId);
         }
     }
     
     private static void convertItemStacksToIds() {
+        if (INSTANCE == null) return;
+        
+        // Ensure arrays have correct size
+        if (INSTANCE.heartRecipeIds == null || INSTANCE.heartRecipeIds.length != 9) {
+            INSTANCE.heartRecipeIds = new String[9];
+        }
+        if (INSTANCE.beaconRecipeIds == null || INSTANCE.beaconRecipeIds.length != 9) {
+            INSTANCE.beaconRecipeIds = new String[9];
+        }
+        
         // Convert ItemStacks back to ID strings
         for (int i = 0; i < 9; i++) {
             INSTANCE.heartRecipeIds[i] = itemStackToId(LifestealConfig.heartRecipeMatrix[i]);
@@ -145,7 +181,9 @@ public class LifestealConfigManager {
     }
 
     public static void save(MinecraftServer server) {
-        if (INSTANCE == null) return;
+        if (INSTANCE == null) {
+            INSTANCE = new LifestealConfigManager();
+        }
         currentServer = server;
         
         // Convert current ItemStacks to IDs before saving
