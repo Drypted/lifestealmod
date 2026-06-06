@@ -32,7 +32,7 @@ public class DynamicCraftingMixin {
     )
     private static void onMatrixUpdated(
             AbstractContainerMenu menu,
-            ServerLevel level,               // ✅ Changed from Level to ServerLevel
+            ServerLevel level,
             Player player,
             CraftingContainer craftingContainer,
             ResultContainer resultContainer,

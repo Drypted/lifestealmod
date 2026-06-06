@@ -37,7 +37,7 @@ public class ItemUseMixin {
                 if (!serverPlayer.getAbilities().instabuild) {
                     heldItem.shrink(1);
                 }
-                serverPlayer.sendSystemMessage(Component.literal("§aYou gained 1 heart! Now at " + (currentHearts + 1) + "/" + absoluteMaxHearts + " hearts."));
+                serverPlayer.sendOverlayMessage(Component.literal("§aYou gained 1 heart! Now at " + (currentHearts + 1) + "/" + absoluteMaxHearts + " hearts."));
                 cir.setReturnValue(InteractionResult.SUCCESS_SERVER);
             } else {
                 serverPlayer.sendOverlayMessage(Component.literal("§cYou are at the absolute maximum (" + absoluteMaxHearts + " hearts)!"));

@@ -109,7 +109,7 @@ public class HeartManager {
                     0.0F,
                     true
             );
-            onlinePlayer.sendSystemMessage(Component.literal("§aYou have been revived!"));
+            onlinePlayer.sendOverlayMessage(Component.literal("§aYou have been revived!"));
             revived = true;
         } else {
             // 3. Offline Player Logic (Raw NBT manipulation)

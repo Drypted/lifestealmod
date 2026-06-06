@@ -46,7 +46,7 @@ public class LifestealCommands {
                     double currentMax = HeartManager.getMaxHealth(player); //[cite: 20]
                     
                     if (currentMax - healthCost < HeartManager.MIN_MAX_HEALTH) {
-                        player.sendSystemMessage(Component.literal("§cYou cannot withdraw your last heart!"));
+                        player.sendOverlayMessage(Component.literal("§cYou cannot withdraw your last heart!"));
                         return 0;
                     }
                     
@@ -62,7 +62,7 @@ public class LifestealCommands {
                         player.level().addFreshEntity(new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), hearts)); //[cite: 20]
                     }
                     
-                    player.sendSystemMessage(Component.literal("§aSuccessfully withdrew " + amountToWithdraw + " hearts.")); //[cite: 20]
+                    player.sendOverlayMessage(Component.literal("§aSuccessfully withdrew " + amountToWithdraw + " hearts.")); //[cite: 20]
                     return 1;
                 })
             )
@@ -121,7 +121,7 @@ public class LifestealCommands {
                         if (!player.getInventory().add(beacon)) {
                             player.level().addFreshEntity(new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), beacon));
                         }
-                        player.sendSystemMessage(Component.literal("§aGranted authentic Revive Beacon."));
+                        player.sendOverlayMessage(Component.literal("§aGranted authentic Revive Beacon."));
                         return 1;
                     })
                 )

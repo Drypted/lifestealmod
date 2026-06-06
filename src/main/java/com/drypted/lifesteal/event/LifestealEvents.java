@@ -41,6 +41,8 @@ public class LifestealEvents {
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             // Data should have been copied via COPY_FROM; just reapply attribute
             HeartManager.updateHealthAttribute(newPlayer);
+            // Explicitly set health to max health on respawn
+            newPlayer.setHealth(newPlayer.getMaxHealth());
         });
 
         // COPY_FROM (critical for persistence)
@@ -113,7 +115,7 @@ public class LifestealEvents {
         } else {
             // Option B: Spectator Mode
             player.setGameMode(GameType.SPECTATOR);
-            player.sendSystemMessage(Component.literal("§cYou ran out of hearts! You are now a spectator until revived."));
+            player.sendOverlayMessage(Component.literal("§cYou ran out of hearts! You are now a spectator until revived."));
         }
     }
 }

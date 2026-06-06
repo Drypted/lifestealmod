@@ -44,7 +44,7 @@ public class ReviveGUIMixin {
                     boolean success = HeartManager.revivePlayer(this.player.level().getServer(), targetProfile);
                     
                     if (success) {
-                        this.player.sendSystemMessage(Component.literal("§aSuccessfully revived " + targetProfile.name() + "!"));
+                        this.player.sendOverlayMessage(Component.literal("§aSuccessfully revived " + targetProfile.name() + "!"));
                         
                         // Safely consume the Revive Beacon item used to trigger the GUI
                         ItemStack mainHand = this.player.getMainHandItem();
@@ -59,7 +59,7 @@ public class ReviveGUIMixin {
                         
                         this.player.closeContainer();
                     } else {
-                        this.player.sendSystemMessage(Component.literal("§cCould not revive " + targetProfile.name() + "."));
+                        this.player.sendOverlayMessage(Component.literal("§cCould not revive " + targetProfile.name() + "."));
                     }
                 }
             }

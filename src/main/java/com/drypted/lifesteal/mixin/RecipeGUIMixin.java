@@ -122,7 +122,7 @@ public class RecipeGUIMixin {
                 for (int i = 0; i < 9; i++) {
                     targetMatrix[i] = editor.getItem(editableSlots[i]).copy();
                 }
-                this.player.sendSystemMessage(Component.literal("§aCustom matrix adjustments saved."));
+                this.player.sendOverlayMessage(Component.literal("§aRecipe saved."));
                 // Save config to disk
                 com.drypted.lifesteal.config.LifestealConfigManager.save(this.player.level().getServer());
                 this.player.level().getServer().execute(() -> RecipeGUI.openMainMenu(this.player));
