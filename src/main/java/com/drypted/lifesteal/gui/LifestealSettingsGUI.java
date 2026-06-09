@@ -1,5 +1,7 @@
 package com.drypted.lifesteal.gui;
 
+import java.util.List;
+
 import com.drypted.lifesteal.config.LifestealConfig;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -11,6 +13,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.ItemLore;
 
 public class LifestealSettingsGUI {
 
@@ -124,19 +127,32 @@ public class LifestealSettingsGUI {
         return stack;
     }
 
+    private static void setLore(ItemStack stack, String text) {
+        stack.set(
+            DataComponents.LORE,
+            new ItemLore(List.of(
+                Component.literal(text)
+                    .withStyle(s -> s.withItalic(false))
+            ))
+        );
+    }
+
     private static ItemStack createToggleItem(boolean enabled, String name, String description) {
         Item icon = enabled ? Items.LIME_CONCRETE : Items.RED_CONCRETE;
         String status = enabled ? "§aENABLED" : "§cDISABLED";
         ItemStack stack = new ItemStack(icon);
         stack.set(DataComponents.CUSTOM_NAME, Component.literal("§6" + name + " §7[" + status + "]").withStyle(s -> s.withItalic(false)));
-        stack.set(DataComponents.LORE, Component.literal("§7" + description).withStyle(s -> s.withItalic(false)));
+        setLore(stack, "§7" + description);
         return stack;
     }
 
     private static ItemStack createMaceSettingsItem() {
         ItemStack stack = new ItemStack(Items.MACE);
         stack.set(DataComponents.CUSTOM_NAME, Component.literal("§5Mace Settings").withStyle(s -> s.withItalic(false)));
-        stack.set(DataComponents.LORE, Component.literal("§7Click to configure mace crafting limit and broadcasts").withStyle(s -> s.withItalic(false)));
+        setLore(
+            stack,
+            "§7Click to configure mace crafting limit and broadcasts"
+        );
         return stack;
     }
 }

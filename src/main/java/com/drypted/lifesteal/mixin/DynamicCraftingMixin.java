@@ -11,10 +11,16 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.ResultContainer;
+import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.Mixin;
@@ -42,23 +48,36 @@ public class DynamicCraftingMixin {
     ) {
         if (!(player instanceof ServerPlayer serverPlayer)) return;
 
-        if (LifestealConfig.maceCraftingEnabled && recipe.value().getResultItem(level.registryAccess()).is(Items.MACE)) {
-            if (LifestealConfig.maceCraftsRemaining <= 0) {
-                player.sendSystemMessage(Component.literal("§cThe mace limit for this server has been reached!"));
-                resultContainer.setItem(0, ItemStack.EMPTY);
-                menu.broadcastChanges();
-                return;
+        CraftingInput input = craftingContainer.asCraftInput();
+
+        ItemStack result = ItemStack.EMPTY;
+
+        Optional<RecipeHolder<CraftingRecipe>> maybeRecipe =
+                level.getServer()
+                    .getRecipeManager()
+                    .getRecipeFor(RecipeType.CRAFTING, input, level, recipe);
+
+        if (maybeRecipe.isPresent()) {
+
+            RecipeHolder<CraftingRecipe> holder = maybeRecipe.get();
+            CraftingRecipe craftingRecipe = holder.value();
+
+            if (resultContainer.setRecipeUsed(serverPlayer, holder)) {
+
+                ItemStack recipeResult = craftingRecipe.assemble(input);
+
+                if (recipeResult.isItemEnabled(level.enabledFeatures())) {
+
+                    if (recipeResult.is(Items.MACE)
+                            && LifestealConfig.maceCraftingEnabled
+                            && LifestealConfig.maceCraftsRemaining <= 0) {
+
+                        result = ItemStack.EMPTY;
+                    } else {
+                        result = recipeResult;
+                    }
+                }
             }
-            // Decrement remaining crafts
-            LifestealConfig.maceCraftsRemaining--;
-            com.drypted.lifesteal.config.LifestealConfigManager.save(level.getServer());
-            // Broadcast if enabled
-            if (LifestealConfig.broadcastMaceCraft) {
-                Component msg = Component.literal("§a" + player.getName().getString() + " has crafted a Mace!");
-                level.getServer().getPlayerList().broadcastSystemMessage(msg, false);
-            }
-            // Allow the craft (result is already set by vanilla, but we must not interfere)
-            // The result will be a normal mace item.
         }
         
         // Check heart recipe
