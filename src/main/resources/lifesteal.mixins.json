@@ -13,7 +13,8 @@
     	"LifestealSettingsGUIMixin",
 		"EndCrystalDamageMixin",
 		"RespawnAnchorMixin",
-		"EnderPearlMixin"
+		"EnderPearlMixin",
+		"EnderChestMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
