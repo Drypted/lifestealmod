@@ -9,7 +9,9 @@
 		"RecipeGUIMixin",
 		"DynamicCraftingMixin",
 		"EnchantmentCapGUIMixin",
-		"InventoryEnforceMixin"
+		"InventoryEnforceMixin",
+    	"LifestealSettingsGUIMixin",
+		"EndCrystalDamageMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

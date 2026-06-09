@@ -3,6 +3,7 @@ package com.drypted.lifesteal.event;
 import com.drypted.lifesteal.Lifesteal;
 import com.drypted.lifesteal.api.HeartManager;
 import com.drypted.lifesteal.config.LifestealConfig;
+import com.drypted.lifesteal.config.LifestealConfigManager;
 import com.drypted.lifesteal.item.HeartDropHandler;
 import com.mojang.authlib.GameProfile;
 
@@ -37,6 +38,16 @@ public class LifestealEvents {
             HeartManager.updateHealthAttribute(handler.getPlayer());
         });
 
+        ServerPlayerEvents.ALLOW_DEATH.register((player, damageSource, damageAmount) -> {
+            if (LifestealConfigManager.getInstance().totemDisabled) {
+                // Send a warning to the player
+                player.sendOverlayMessage(Component.literal("§cThe Totem of Undying is disabled on this server!"));
+                // Do NOT allow the totem to prevent death
+                return true; // 'true' allows death to proceed
+            }
+            return true; // Allow death if totem is disabled
+        });
+        
         // RESPAWN
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
             // Data should have been copied via COPY_FROM; just reapply attribute

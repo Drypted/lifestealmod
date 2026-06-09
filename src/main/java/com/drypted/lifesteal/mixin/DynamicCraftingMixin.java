@@ -12,6 +12,7 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.inventory.CraftingMenu;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import org.slf4j.Logger;
@@ -41,6 +42,25 @@ public class DynamicCraftingMixin {
     ) {
         if (!(player instanceof ServerPlayer serverPlayer)) return;
 
+        if (LifestealConfig.maceCraftingEnabled && recipe.value().getResultItem(level.registryAccess()).is(Items.MACE)) {
+            if (LifestealConfig.maceCraftsRemaining <= 0) {
+                player.sendSystemMessage(Component.literal("§cThe mace limit for this server has been reached!"));
+                resultContainer.setItem(0, ItemStack.EMPTY);
+                menu.broadcastChanges();
+                return;
+            }
+            // Decrement remaining crafts
+            LifestealConfig.maceCraftsRemaining--;
+            com.drypted.lifesteal.config.LifestealConfigManager.save(level.getServer());
+            // Broadcast if enabled
+            if (LifestealConfig.broadcastMaceCraft) {
+                Component msg = Component.literal("§a" + player.getName().getString() + " has crafted a Mace!");
+                level.getServer().getPlayerList().broadcastSystemMessage(msg, false);
+            }
+            // Allow the craft (result is already set by vanilla, but we must not interfere)
+            // The result will be a normal mace item.
+        }
+        
         // Check heart recipe
         if (LifestealConfig.heartRecipeEnabled && matchesMatrix(craftingContainer, LifestealConfig.heartRecipeMatrix)) {
             double playerHearts = HeartManager.getMaxHealth(serverPlayer) / 2.0;
