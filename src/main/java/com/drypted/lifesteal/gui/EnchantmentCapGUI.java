@@ -9,6 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.inventory.ChestMenu;
@@ -25,13 +26,30 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class EnchantmentCapGUI {
 
-    // Per‑player pagination state (weak map to avoid memory leaks)
     private static final Map<ServerPlayer, PageState> PAGE_STATES = new ConcurrentHashMap<>();
 
     private static class PageState {
-        int leftPage = 0;   // active caps
-        int rightPage = 0;  // all enchantments
+        int leftPage = 0;
+        int rightCategory = 0;
+        int rightPage = 0;
     }
+
+    // Category predicates using Holder<Enchantment>.is(TagKey)
+    private static final List<Category> CATEGORIES = Arrays.asList(
+        new Category("§cARMOR", holder -> holder.is(EnchantmentTags.ARMOR_EXCLUSIVE) || holder.is(EnchantmentTags.BOOTS_EXCLUSIVE)),
+        new Category("§6WEAPON", holder -> holder.is(EnchantmentTags.DAMAGE_EXCLUSIVE)),
+        new Category("§bBOW", holder -> holder.is(EnchantmentTags.BOW_EXCLUSIVE)),
+        new Category("§3CROSSBOW", holder -> holder.is(EnchantmentTags.CROSSBOW_EXCLUSIVE)),
+        new Category("§aTOOL", holder -> holder.is(EnchantmentTags.MINING_EXCLUSIVE)),
+        new Category("§dTRIDENT", holder -> holder.is(EnchantmentTags.RIPTIDE_EXCLUSIVE)),
+        new Category("§5CURSE", holder -> holder.is(EnchantmentTags.CURSE)),
+        new Category("§7OTHER", holder -> !(holder.is(EnchantmentTags.ARMOR_EXCLUSIVE) || holder.is(EnchantmentTags.BOOTS_EXCLUSIVE) ||
+                                            holder.is(EnchantmentTags.DAMAGE_EXCLUSIVE) || holder.is(EnchantmentTags.BOW_EXCLUSIVE) ||
+                                            holder.is(EnchantmentTags.CROSSBOW_EXCLUSIVE) || holder.is(EnchantmentTags.MINING_EXCLUSIVE) ||
+                                            holder.is(EnchantmentTags.RIPTIDE_EXCLUSIVE) || holder.is(EnchantmentTags.CURSE)))
+    );
+
+    private record Category(String displayName, java.util.function.Predicate<Holder<Enchantment>> predicate) {}
 
     public static class CapListContainer extends SimpleContainer {
         public CapListContainer() { super(54); }
@@ -62,11 +80,10 @@ public class EnchantmentCapGUI {
         CapListContainer container = new CapListContainer();
         for (int i = 0; i < 54; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
 
-        // ----- LEFT SIDE: active caps (slots 0-26) -----
+        // Left panel: active caps (slots 0-26)
         List<Map.Entry<String, Integer>> capsList = new ArrayList<>(LifestealConfigManager.getInstance().enchantmentCaps.entrySet());
         int capsPerPage = 27;
         int leftTotalPages = Math.max(1, (capsList.size() + capsPerPage - 1) / capsPerPage);
-        // clamp page
         if (state.leftPage >= leftTotalPages) state.leftPage = leftTotalPages - 1;
         if (state.leftPage < 0) state.leftPage = 0;
 
@@ -93,33 +110,27 @@ public class EnchantmentCapGUI {
             }
             slot++;
         }
-        // fill remaining left slots with glass
-        for (; slot < 27; slot++) {
-            container.setItem(slot, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
-        }
 
-        // Left pagination controls (bottom row)
-        container.setItem(45, createGlass(Items.ARROW, "§e« Previous Caps"));
+        container.setItem(45, createGlass(Items.ARROW, "§e« Prev Caps"));
         container.setItem(46, createGlass(Items.PAPER, "§7Page " + (state.leftPage + 1) + "/" + leftTotalPages));
         container.setItem(47, createGlass(Items.ARROW, "§eNext Caps »"));
 
-        // ----- RIGHT SIDE: all enchantments (slots 27-53) -----
-        List<Identifier> allEnchIds = new ArrayList<>();
+        // Right panel: enchantments by category (slots 27-44)
         Registry<Enchantment> registry = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        for (Identifier id : registry.keySet()) {
-            allEnchIds.add(id);
-        }
-        int rightTotalPages = Math.max(1, (allEnchIds.size() + capsPerPage - 1) / capsPerPage);
+        Category currentCat = CATEGORIES.get(state.rightCategory);
+        List<Holder.Reference<Enchantment>> catEnchants = getEnchantmentsForCategory(registry, currentCat);
+        int itemsPerPage = 18;
+        int rightTotalPages = Math.max(1, (catEnchants.size() + itemsPerPage - 1) / itemsPerPage);
         if (state.rightPage >= rightTotalPages) state.rightPage = rightTotalPages - 1;
         if (state.rightPage < 0) state.rightPage = 0;
 
-        int startRight = state.rightPage * capsPerPage;
-        int endRight = Math.min(startRight + capsPerPage, allEnchIds.size());
+        int startRight = state.rightPage * itemsPerPage;
+        int endRight = Math.min(startRight + itemsPerPage, catEnchants.size());
         slot = 27;
         for (int i = startRight; i < endRight; i++) {
-            Identifier id = allEnchIds.get(i);
-            Optional<Holder.Reference<Enchantment>> opt = registry.get(id);
-            if (opt.isEmpty()) continue;
+            Holder.Reference<Enchantment> enchHolder = catEnchants.get(i);
+            Identifier id = registry.getKey(enchHolder.value());
+            if (id == null) continue;
             ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
             book.set(DataComponents.CUSTOM_NAME, Component.literal("§b" + id.getPath()));
             CompoundTag tag = new CompoundTag();
@@ -128,15 +139,14 @@ public class EnchantmentCapGUI {
             container.setItem(slot, book);
             slot++;
         }
-        // fill remaining right slots with glass
-        for (; slot < 54; slot++) {
-            container.setItem(slot, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
-        }
+        for (; slot < 45; slot++) container.setItem(slot, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
 
-        // Right pagination controls
-        container.setItem(50, createGlass(Items.ARROW, "§e« Previous Enchants"));
-        container.setItem(51, createGlass(Items.PAPER, "§7Page " + (state.rightPage + 1) + "/" + rightTotalPages));
-        container.setItem(52, createGlass(Items.ARROW, "§eNext Enchants »"));
+        container.setItem(48, createGlass(Items.ARROW, "§e« Prev Enchants"));
+        container.setItem(49, createGlass(Items.PAPER, "§7Page " + (state.rightPage + 1) + "/" + rightTotalPages));
+        container.setItem(50, createGlass(Items.ARROW, "§eNext Enchants »"));
+        container.setItem(51, createGlass(Items.BOOKSHELF, "§e« Prev Category"));
+        container.setItem(52, createGlass(Items.NAME_TAG, currentCat.displayName()));
+        container.setItem(53, createGlass(Items.BOOKSHELF, "§eNext Category »"));
 
         player.openMenu(new SimpleMenuProvider(
             (id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x6, id, inv, container, 6),
@@ -144,6 +154,22 @@ public class EnchantmentCapGUI {
         ));
     }
 
+    private static List<Holder.Reference<Enchantment>> getEnchantmentsForCategory(Registry<Enchantment> registry, Category cat) {
+        List<Holder.Reference<Enchantment>> result = new ArrayList<>();
+        for (Identifier id : registry.keySet()) {
+            Optional<Holder.Reference<Enchantment>> holderOpt = registry.get(id);
+            if (holderOpt.isPresent()) {
+                Holder.Reference<Enchantment> holder = holderOpt.get();
+                if (cat.predicate().test(holder)) {
+                    result.add(holder);
+                }
+            }
+        }
+        result.sort(Comparator.comparing(h -> registry.getKey(h.value()).getPath()));
+        return result;
+    }
+
+    // Navigation methods (same as before)
     public static void changeLeftPage(ServerPlayer player, int delta) {
         PageState state = PAGE_STATES.computeIfAbsent(player, k -> new PageState());
         List<Map.Entry<String, Integer>> capsList = new ArrayList<>(LifestealConfigManager.getInstance().enchantmentCaps.entrySet());
@@ -156,14 +182,24 @@ public class EnchantmentCapGUI {
     public static void changeRightPage(ServerPlayer player, int delta) {
         PageState state = PAGE_STATES.computeIfAbsent(player, k -> new PageState());
         Registry<Enchantment> registry = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-        List<Identifier> allEnchIds = new ArrayList<>(registry.keySet());
-        int capsPerPage = 27;
-        int totalPages = Math.max(1, (allEnchIds.size() + capsPerPage - 1) / capsPerPage);
+        Category currentCat = CATEGORIES.get(state.rightCategory);
+        List<Holder.Reference<Enchantment>> catEnchants = getEnchantmentsForCategory(registry, currentCat);
+        int itemsPerPage = 18;
+        int totalPages = Math.max(1, (catEnchants.size() + itemsPerPage - 1) / itemsPerPage);
         state.rightPage = Math.max(0, Math.min(totalPages - 1, state.rightPage + delta));
         openMainMenu(player);
     }
 
-    // Adjuster methods remain the same
+    public static void changeCategory(ServerPlayer player, int delta) {
+        PageState state = PAGE_STATES.computeIfAbsent(player, k -> new PageState());
+        int newCat = state.rightCategory + delta;
+        if (newCat < 0) newCat = CATEGORIES.size() - 1;
+        if (newCat >= CATEGORIES.size()) newCat = 0;
+        state.rightCategory = newCat;
+        state.rightPage = 0;
+        openMainMenu(player);
+    }
+
     public static void openAdjuster(ServerPlayer player, String enchantmentId, int currentCap, int maxPossible) {
         AdjusterContainer container = new AdjusterContainer(enchantmentId, currentCap, maxPossible);
         for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
