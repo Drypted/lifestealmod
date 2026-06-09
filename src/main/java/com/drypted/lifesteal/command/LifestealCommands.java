@@ -5,6 +5,7 @@ import com.drypted.lifesteal.api.ServerItemHelper;
 import com.drypted.lifesteal.config.LifestealConfig;
 import com.drypted.lifesteal.config.LifestealConfigManager;
 import com.drypted.lifesteal.gui.EnchantmentCapGUI;
+import com.drypted.lifesteal.gui.LifestealSettingsGUI;
 import com.drypted.lifesteal.gui.RecipeGUI;
 import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
@@ -216,6 +217,11 @@ public class LifestealCommands {
 
             // /lifesteal settings <property> <value>
             .then(Commands.literal("settings")
+                .executes(context -> {
+                    ServerPlayer player = context.getSource().getPlayerOrException();
+                    LifestealSettingsGUI.openMainSettings(player);
+                    return 1;
+                })
                 // banOnZeroHearts
                 .then(Commands.literal("banOnZeroHearts")
                     .then(Commands.argument("value", BoolArgumentType.bool())

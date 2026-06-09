@@ -45,6 +45,15 @@ public class LifestealConfigManager {
     // Inside LifestealConfigManager class, add:
     public Map<String, Integer> enchantmentCaps = new HashMap<>();
 
+    public static boolean totemDisabled = false;
+    public static boolean endCrystalDamageDisabled = false;
+    public static boolean respawnAnchorNetherOnly = true; // true = only Nether, false = vanilla
+    public static boolean enderPearlDisabled = false;
+    public static boolean dragonEggEnderChestDisabled = true;
+    public static boolean maceCraftingEnabled = true;
+    public static int maceCraftsRemaining = 1;
+    public static boolean broadcastMaceCraft = true;
+
     // Singleton instance
     private static LifestealConfigManager INSTANCE = null;
 
@@ -115,6 +124,16 @@ public class LifestealConfigManager {
         LifestealConfig.beaconRecipeEnabled = INSTANCE.beaconRecipeEnabled;
         LifestealConfig.maxHeartsToCraft = INSTANCE.maxHeartsToCraft * 2;
         LifestealConfig.broadcastElimination = INSTANCE.broadcastElimination;
+
+        
+        LifestealConfig.totemDisabled = INSTANCE.totemDisabled;
+        LifestealConfig.endCrystalDamageDisabled = INSTANCE.endCrystalDamageDisabled;
+        LifestealConfig.respawnAnchorNetherOnly = INSTANCE.respawnAnchorNetherOnly;
+        LifestealConfig.enderPearlDisabled = INSTANCE.enderPearlDisabled;
+        LifestealConfig.dragonEggEnderChestDisabled = INSTANCE.dragonEggEnderChestDisabled;
+        LifestealConfig.maceCraftingEnabled = INSTANCE.maceCraftingEnabled;
+        LifestealConfig.maceCraftsRemaining = INSTANCE.maceCraftsRemaining;
+        LifestealConfig.broadcastMaceCraft = INSTANCE.broadcastMaceCraft;
         
         // Save default if file didn't exist
         if (!Files.exists(configPath)) {
@@ -198,6 +217,16 @@ public class LifestealConfigManager {
         INSTANCE.beaconRecipeEnabled = LifestealConfig.beaconRecipeEnabled;
         INSTANCE.maxHeartsToCraft = LifestealConfig.maxHeartsToCraft / 2;
         INSTANCE.broadcastElimination = LifestealConfig.broadcastElimination;
+
+        
+        INSTANCE.totemDisabled = LifestealConfig.totemDisabled;
+        INSTANCE.endCrystalDamageDisabled = LifestealConfig.endCrystalDamageDisabled;
+        INSTANCE.respawnAnchorNetherOnly = LifestealConfig.respawnAnchorNetherOnly;
+        INSTANCE.enderPearlDisabled = LifestealConfig.enderPearlDisabled;
+        INSTANCE.dragonEggEnderChestDisabled = LifestealConfig.dragonEggEnderChestDisabled;
+        INSTANCE.maceCraftingEnabled = LifestealConfig.maceCraftingEnabled;
+        INSTANCE.maceCraftsRemaining = LifestealConfig.maceCraftsRemaining;
+        INSTANCE.broadcastMaceCraft = LifestealConfig.broadcastMaceCraft;
 
         Path configPath = server.getWorldPath(LevelResource.ROOT).resolve("lifesteal_config.json");
         try (Writer writer = Files.newBufferedWriter(configPath)) {

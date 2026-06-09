@@ -31,6 +31,15 @@ public class LifestealConfig {
     // Enchantment
     public Map<String, Integer> enchantmentCaps = new HashMap<>();
 
+    public static boolean totemDisabled = false;
+    public static boolean endCrystalDamageDisabled = false;
+    public static boolean respawnAnchorNetherOnly = true; // true = only Nether, false = vanilla
+    public static boolean enderPearlDisabled = false;
+    public static boolean dragonEggEnderChestDisabled = true;
+    public static boolean maceCraftingEnabled = true;
+    public static int maceCraftsRemaining = 1;
+    public static boolean broadcastMaceCraft = true;
+    
     static {
         for (int i = 0; i < 9; i++) {
             heartRecipeMatrix[i] = ItemStack.EMPTY;
