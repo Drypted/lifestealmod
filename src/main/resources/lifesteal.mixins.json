@@ -11,7 +11,8 @@
 		"EnchantmentCapGUIMixin",
 		"InventoryEnforceMixin",
     	"LifestealSettingsGUIMixin",
-		"EndCrystalDamageMixin"
+		"EndCrystalDamageMixin",
+		"RespawnAnchorMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
