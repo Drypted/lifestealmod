@@ -41,7 +41,7 @@ public class LifestealEvents {
         ServerPlayerEvents.ALLOW_DEATH.register((player, damageSource, damageAmount) -> {
             if (LifestealConfigManager.getInstance().totemDisabled) {
                 // Send a warning to the player
-                player.sendOverlayMessage(Component.literal("§cThe Totem of Undying is disabled on this server!"));
+                player.sendSystemMessage(Component.literal("§cTotem of Undying is disabled on this server!"));
                 // Do NOT allow the totem to prevent death
                 return true; // 'true' allows death to proceed
             }
