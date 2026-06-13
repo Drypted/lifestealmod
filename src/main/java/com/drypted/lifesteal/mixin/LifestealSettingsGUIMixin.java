@@ -29,10 +29,18 @@ public class LifestealSettingsGUIMixin {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
             int slot = packet.slotNum();
-            if (slot == 10) LifestealSettingsGUI.openMaceSettings(this.player);
-            else if (slot == 12) LifestealSettingsGUI.openHeartSettings(this.player);
-            else if (slot == 14) LifestealSettingsGUI.openBeaconSettings(this.player);
-            else if (slot == 16) LifestealSettingsGUI.openMiscSettings(this.player);
+            if (slot == 10) {
+                LifestealSettingsGUI.openMaceSettings(this.player);
+            } else if (slot == 12) {
+                LifestealSettingsGUI.openHeartSettings(this.player);
+            } else if (slot == 14) {
+                LifestealSettingsGUI.openBeaconSettings(this.player);
+            } else if (slot == 16) {
+                LifestealSettingsGUI.openMiscSettings(this.player);
+            } else {
+                // Click on a glass pane – just refresh to avoid any client desync
+                chestMenu.sendAllDataToRemote();
+            }
             return;
         }
 
@@ -41,15 +49,32 @@ public class LifestealSettingsGUIMixin {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
             int slot = packet.slotNum();
-            if (slot == 10) toggleValue("maceCraftingEnabled");
-            else if (slot == 14) adjustMaceLimit(-1);
-            else if (slot == 15) adjustMaceLimit(-5);
-            else if (slot == 16) adjustMaceLimit(1);
-            else if (slot == 17) adjustMaceLimit(5);
-            else if (slot == 22) toggleValue("broadcastMaceCraft");
-            else if (slot == 26) LifestealSettingsGUI.openMainMenu(this.player);
-            else return;
-            LifestealSettingsGUI.openMaceSettings(this.player);
+
+            if (slot == 10) {
+                toggleValue("maceCraftingEnabled");
+                LifestealSettingsGUI.openMaceSettings(this.player);
+            } else if (slot == 14) {
+                adjustMaceLimit(-1);
+                LifestealSettingsGUI.openMaceSettings(this.player);
+            } else if (slot == 15) {
+                adjustMaceLimit(-5);
+                LifestealSettingsGUI.openMaceSettings(this.player);
+            } else if (slot == 16) {
+                adjustMaceLimit(1);
+                LifestealSettingsGUI.openMaceSettings(this.player);
+            } else if (slot == 17) {
+                adjustMaceLimit(5);
+                LifestealSettingsGUI.openMaceSettings(this.player);
+            } else if (slot == 22) {
+                toggleValue("broadcastMaceCraft");
+                LifestealSettingsGUI.openMaceSettings(this.player);
+            } else if (slot == 26) {
+                // Back to main menu – do NOT reopen mace settings
+                LifestealSettingsGUI.openMainMenu(this.player);
+            } else {
+                // Click on glass pane – just refresh the current GUI
+                LifestealSettingsGUI.openMaceSettings(this.player);
+            }
             return;
         }
 
@@ -58,16 +83,30 @@ public class LifestealSettingsGUIMixin {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
             int slot = packet.slotNum();
-            if (slot == 10) toggleValue("heartRecipeEnabled");
-            else if (slot == 11) openAdjuster("maxHeartsToCraft", 2.0, LifestealConfig.maxHearts / 2.0);
-            else if (slot == 12) openAdjuster("maxHearts", 2.0, 1024.0);
-            else if (slot == 13) openAdjuster("reviveAtHearts", 2.0, LifestealConfig.maxHearts / 2.0);
-            else if (slot == 15) toggleValue("banOnZeroHearts");
-            else if (slot == 16) toggleValue("loseHeartsByNaturalCauses");
-            else if (slot == 17) toggleValue("broadcastElimination");
-            else if (slot == 26) LifestealSettingsGUI.openMainMenu(this.player);
-            else return;
-            LifestealSettingsGUI.openHeartSettings(this.player);
+
+            if (slot == 10) {
+                toggleValue("heartRecipeEnabled");
+                LifestealSettingsGUI.openHeartSettings(this.player);
+            } else if (slot == 11) {
+                openAdjuster("maxHeartsToCraft", 2.0, LifestealConfig.maxHearts / 2.0);
+            } else if (slot == 12) {
+                openAdjuster("maxHearts", 2.0, 1024.0);
+            } else if (slot == 13) {
+                openAdjuster("reviveAtHearts", 2.0, LifestealConfig.maxHearts / 2.0);
+            } else if (slot == 15) {
+                toggleValue("banOnZeroHearts");
+                LifestealSettingsGUI.openHeartSettings(this.player);
+            } else if (slot == 16) {
+                toggleValue("loseHeartsByNaturalCauses");
+                LifestealSettingsGUI.openHeartSettings(this.player);
+            } else if (slot == 17) {
+                toggleValue("broadcastElimination");
+                LifestealSettingsGUI.openHeartSettings(this.player);
+            } else if (slot == 26) {
+                LifestealSettingsGUI.openMainMenu(this.player);
+            } else {
+                LifestealSettingsGUI.openHeartSettings(this.player);
+            }
             return;
         }
 
@@ -76,10 +115,15 @@ public class LifestealSettingsGUIMixin {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
             int slot = packet.slotNum();
-            if (slot == 13) toggleValue("beaconRecipeEnabled");
-            else if (slot == 26) LifestealSettingsGUI.openMainMenu(this.player);
-            else return;
-            LifestealSettingsGUI.openBeaconSettings(this.player);
+
+            if (slot == 13) {
+                toggleValue("beaconRecipeEnabled");
+                LifestealSettingsGUI.openBeaconSettings(this.player);
+            } else if (slot == 26) {
+                LifestealSettingsGUI.openMainMenu(this.player);
+            } else {
+                LifestealSettingsGUI.openBeaconSettings(this.player);
+            }
             return;
         }
 
@@ -88,14 +132,27 @@ public class LifestealSettingsGUIMixin {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
             int slot = packet.slotNum();
-            if (slot == 10) toggleValue("totemDisabled");
-            else if (slot == 11) toggleValue("endCrystalDamageDisabled");
-            else if (slot == 12) toggleValue("respawnAnchorNetherOnly");
-            else if (slot == 13) toggleValue("enderPearlDisabled");
-            else if (slot == 14) toggleValue("dragonEggEnderChestDisabled");
-            else if (slot == 26) LifestealSettingsGUI.openMainMenu(this.player);
-            else return;
-            LifestealSettingsGUI.openMiscSettings(this.player);
+
+            if (slot == 10) {
+                toggleValue("totemDisabled");
+                LifestealSettingsGUI.openMiscSettings(this.player);
+            } else if (slot == 11) {
+                toggleValue("endCrystalDamageDisabled");
+                LifestealSettingsGUI.openMiscSettings(this.player);
+            } else if (slot == 12) {
+                toggleValue("respawnAnchorNetherOnly");
+                LifestealSettingsGUI.openMiscSettings(this.player);
+            } else if (slot == 13) {
+                toggleValue("enderPearlDisabled");
+                LifestealSettingsGUI.openMiscSettings(this.player);
+            } else if (slot == 14) {
+                toggleValue("dragonEggEnderChestDisabled");
+                LifestealSettingsGUI.openMiscSettings(this.player);
+            } else if (slot == 26) {
+                LifestealSettingsGUI.openMainMenu(this.player);
+            } else {
+                LifestealSettingsGUI.openMiscSettings(this.player);
+            }
             return;
         }
 
@@ -109,6 +166,7 @@ public class LifestealSettingsGUIMixin {
             double min = (field.equals("maxHearts") ? 2.0 : 2.0);
             double max = (field.equals("maxHearts") ? 1024.0 : LifestealConfig.maxHearts / 2.0);
             double newVal = current;
+
             if (slot == 10) newVal = Math.max(min, current - 1.0);
             else if (slot == 11) newVal = Math.max(min, current - 0.5);
             else if (slot == 15) newVal = Math.min(max, current + 0.5);
@@ -116,18 +174,22 @@ public class LifestealSettingsGUIMixin {
             else if (slot == 22) {
                 LifestealSettingsGUI.openHeartSettings(this.player);
                 return;
+            } else {
+                // Click on glass – refresh adjuster
+                LifestealSettingsGUI.openDoubleAdjuster(this.player, field, min, max);
+                return;
             }
+
             if (newVal != current) {
                 setFieldValue(field, newVal);
                 LifestealConfigManager.save(this.player.level().getServer());
                 this.player.sendSystemMessage(Component.literal(LifestealConfig.messagePrefix + "§a" + field + " set to " + newVal + " hearts"));
             }
             LifestealSettingsGUI.openDoubleAdjuster(this.player, field, min, max);
-            return;
         }
     }
 
-    // Helper methods (unchanged)
+    // ---------- HELPER METHODS ----------
     private void toggleValue(String fieldName) {
         try {
             java.lang.reflect.Field field = LifestealConfig.class.getField(fieldName);
@@ -135,7 +197,9 @@ public class LifestealSettingsGUIMixin {
             field.setBoolean(null, !current);
             LifestealConfigManager.save(this.player.level().getServer());
             this.player.sendSystemMessage(Component.literal(LifestealConfig.messagePrefix + "§a" + fieldName + " set to " + !current));
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void adjustMaceLimit(int delta) {
