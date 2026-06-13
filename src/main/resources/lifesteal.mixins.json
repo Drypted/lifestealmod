@@ -14,7 +14,8 @@
 		"EndCrystalDamageMixin",
 		"RespawnAnchorMixin",
 		"EnderPearlMixin",
-		"EnderChestMixin"
+		"ResultSlotMixin",
+		"TotemDisableMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
@@ -22,4 +23,4 @@
 	"overwrites": {
 		"requireAnnotations": true
 	}
-}
+}	

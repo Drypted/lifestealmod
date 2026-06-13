@@ -135,9 +135,7 @@ public class HeartManager {
                     tag.putString("Dimension", Level.OVERWORLD.identifier().toString());
 
                     // Modify Lifesteal specific max health attachment dynamically
-                    CompoundTag fabricAttachments =
-                        tag.getCompound("fabric:attachments")
-                        .orElse(new CompoundTag());
+                    CompoundTag fabricAttachments = tag.getCompound("fabric:attachments").orElse(new CompoundTag());
                     fabricAttachments.putDouble("lifesteal:max_health", LifestealConfig.reviveAtHearts);
                     tag.put("fabric:attachments", fabricAttachments);
 
