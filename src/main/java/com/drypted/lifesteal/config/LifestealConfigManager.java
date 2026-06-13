@@ -28,7 +28,7 @@ public class LifestealConfigManager {
             .setPrettyPrinting()
             .create();
 
-    // ---- Config fields (all values are in HEARTS) ----
+    // ---- Config fields (all instance fields, will be saved) ----
     public boolean banOnZeroHearts = true;
     public boolean loseHeartsByNaturalCauses = false;
     public double maxHearts = 20.0;          // hearts (20 = 40 HP)
@@ -39,21 +39,22 @@ public class LifestealConfigManager {
     public boolean broadcastElimination = true;
     public String messagePrefix = "§4[LIFESTEAL] ";
 
-    // Store recipes as String IDs instead of ItemStacks
+    // Recipe storage as String IDs
     public String[] heartRecipeIds = new String[9];
     public String[] beaconRecipeIds = new String[9];
 
-    // Inside LifestealConfigManager class, add:
+    // Enchantment caps
     public Map<String, Integer> enchantmentCaps = new HashMap<>();
 
-    public static boolean totemDisabled = false;
-    public static boolean endCrystalDamageDisabled = false;
-    public static boolean respawnAnchorNetherOnly = true; // true = only Nether, false = vanilla
-    public static boolean enderPearlDisabled = false;
-    public static boolean dragonEggEnderChestDisabled = true;
-    public static boolean maceCraftingEnabled = true;
-    public static int maceCraftsRemaining = 1;
-    public static boolean broadcastMaceCraft = true;
+    // ---- These were static; now instance fields ----
+    public boolean totemDisabled = false;
+    public boolean endCrystalDamageDisabled = false;
+    public boolean respawnAnchorNetherOnly = true; // true = only Nether, false = vanilla
+    public boolean enderPearlDisabled = false;
+    public boolean dragonEggEnderChestDisabled = true;
+    public boolean maceCraftingEnabled = true;
+    public int maceCraftsRemaining = 1;
+    public boolean broadcastMaceCraft = true;
 
     // Singleton instance
     private static LifestealConfigManager INSTANCE = null;
@@ -71,8 +72,7 @@ public class LifestealConfigManager {
         return INSTANCE;
     }
 
-     public static void load(MinecraftServer server) {
-        // Ensure instance exists
+    public static void load(MinecraftServer server) {
         if (INSTANCE == null) {
             INSTANCE = new LifestealConfigManager();
         }
@@ -89,7 +89,6 @@ public class LifestealConfigManager {
                 LOGGER.info("Loaded Lifesteal config from {}", configPath);
             } catch (Exception e) {
                 LOGGER.error("Failed to load config, using defaults", e);
-                // Keep the default INSTANCE (already created)
             }
         }
         
@@ -116,7 +115,7 @@ public class LifestealConfigManager {
         // Convert ID strings to ItemStacks
         convertIdsToItemStacks();
         
-        // Copy to legacy static fields
+        // Copy to static LifestealConfig fields (used by the rest of the mod)
         LifestealConfig.banOnZeroHearts = INSTANCE.banOnZeroHearts;
         LifestealConfig.loseHeartsByNaturalCauses = INSTANCE.loseHeartsByNaturalCauses;
         LifestealConfig.maxHearts = INSTANCE.maxHearts * 2;
@@ -129,6 +128,7 @@ public class LifestealConfigManager {
             LifestealConfig.messagePrefix = INSTANCE.messagePrefix;
         }
         
+        // Copy the newly instance fields
         LifestealConfig.totemDisabled = INSTANCE.totemDisabled;
         LifestealConfig.endCrystalDamageDisabled = INSTANCE.endCrystalDamageDisabled;
         LifestealConfig.respawnAnchorNetherOnly = INSTANCE.respawnAnchorNetherOnly;
@@ -147,7 +147,6 @@ public class LifestealConfigManager {
     private static void convertIdsToItemStacks() {
         if (INSTANCE == null) return;
         
-        // Convert heart recipe IDs to ItemStacks
         for (int i = 0; i < 9; i++) {
             String heartId = (i < INSTANCE.heartRecipeIds.length) ? INSTANCE.heartRecipeIds[i] : "";
             String beaconId = (i < INSTANCE.beaconRecipeIds.length) ? INSTANCE.beaconRecipeIds[i] : "";
@@ -160,7 +159,6 @@ public class LifestealConfigManager {
     private static void convertItemStacksToIds() {
         if (INSTANCE == null) return;
         
-        // Ensure arrays have correct size
         if (INSTANCE.heartRecipeIds == null || INSTANCE.heartRecipeIds.length != 9) {
             INSTANCE.heartRecipeIds = new String[9];
         }
@@ -168,7 +166,6 @@ public class LifestealConfigManager {
             INSTANCE.beaconRecipeIds = new String[9];
         }
         
-        // Convert ItemStacks back to ID strings
         for (int i = 0; i < 9; i++) {
             INSTANCE.heartRecipeIds[i] = itemStackToId(LifestealConfig.heartRecipeMatrix[i]);
             INSTANCE.beaconRecipeIds[i] = itemStackToId(LifestealConfig.beaconRecipeMatrix[i]);
@@ -191,7 +188,6 @@ public class LifestealConfigManager {
         if (key == null) {
             return ItemStack.EMPTY;
         }
-        // Registry.get(Identifier) returns Optional<Holder.Reference<Item>>
         Optional<Holder.Reference<Item>> optionalItem = BuiltInRegistries.ITEM.get(key);
         if (optionalItem.isEmpty()) {
             return ItemStack.EMPTY;
@@ -212,6 +208,7 @@ public class LifestealConfigManager {
         // Convert current ItemStacks to IDs before saving
         convertItemStacksToIds();
         
+        // Copy from static LifestealConfig back to instance fields
         INSTANCE.banOnZeroHearts = LifestealConfig.banOnZeroHearts;
         INSTANCE.loseHeartsByNaturalCauses = LifestealConfig.loseHeartsByNaturalCauses;
         INSTANCE.maxHearts = LifestealConfig.maxHearts / 2;
@@ -222,6 +219,7 @@ public class LifestealConfigManager {
         INSTANCE.broadcastElimination = LifestealConfig.broadcastElimination;
         INSTANCE.messagePrefix = LifestealConfig.messagePrefix;
         
+        // Copy the toggle fields
         INSTANCE.totemDisabled = LifestealConfig.totemDisabled;
         INSTANCE.endCrystalDamageDisabled = LifestealConfig.endCrystalDamageDisabled;
         INSTANCE.respawnAnchorNetherOnly = LifestealConfig.respawnAnchorNetherOnly;
