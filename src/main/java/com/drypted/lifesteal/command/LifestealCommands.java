@@ -103,10 +103,10 @@ public class LifestealCommands {
     // --- /lifesteal CONTROLLER BRANCH ---
     private static void registerLifestealBase(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("lifesteal")
-            .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_MODERATOR)) // Require Operator privileges
+            .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_OWNER)) // Operator only
             
-            // /lifesteal debug give_revive_item
-            .then(Commands.literal("debug")
+            // /lifesteal item give_revive_item
+            .then(Commands.literal("item")
                 .then(Commands.literal("give_revive_item")
                     .executes(context -> {
                         ServerPlayer player = context.getSource().getPlayerOrException();
@@ -114,7 +114,7 @@ public class LifestealCommands {
                         if (!player.getInventory().add(beacon)) {
                             player.level().addFreshEntity(new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), beacon));
                         }
-                        player.sendOverlayMessage(Component.literal("§aGranted authentic Revive Beacon."));
+                        player.sendOverlayMessage(Component.literal("§aGranted Revive Beacon."));
                         return 1;
                     })
                 )
@@ -171,12 +171,11 @@ public class LifestealCommands {
                             double newHP = currentHP + (heartsToAdd * 2.0);
                             double maxAllowedHP = LifestealConfig.maxHearts;
                             double minHP = HeartManager.MIN_MAX_HEALTH;
-                            if (newHP > maxAllowedHP) newHP = maxAllowedHP;
-                            if (newHP < minHP) newHP = minHP;
-                            HeartManager.setMaxHealth(target, newHP);
-                            double actualHeartsAdded = (newHP - currentHP) / 2.0;
+                            double clampedHP = Math.min(maxAllowedHP, Math.max(minHP, newHP));
+                            HeartManager.setMaxHealth(target, clampedHP);
+                            double actualHeartsAdded = (clampedHP - currentHP) / 2.0;
                             context.getSource().sendSuccess(
-                                () -> Component.literal("§aAdded " + actualHeartsAdded + " hearts to " + target.getScoreboardName() + ". Now at " + (newHP/2.0) + " hearts."),
+                                () -> Component.literal("§aAdded " + actualHeartsAdded + " hearts to " + target.getScoreboardName() + ". Now at " + (clampedHP/2.0) + " hearts."),
                                 true
                             );
                             return 1;
@@ -195,11 +194,11 @@ public class LifestealCommands {
                             double currentHP = HeartManager.getMaxHealth(target);
                             double newHP = currentHP - (heartsToTake * 2.0);
                             double minHP = HeartManager.MIN_MAX_HEALTH;
-                            if (newHP < minHP) newHP = minHP;
-                            HeartManager.setMaxHealth(target, newHP);
-                            double actualHeartsTaken = (currentHP - newHP) / 2.0;
+                            double clampedHP = Math.max(minHP, newHP);
+                            HeartManager.setMaxHealth(target, clampedHP);
+                            double actualHeartsTaken = (currentHP - clampedHP) / 2.0;
                             context.getSource().sendSuccess(
-                                () -> Component.literal("§aTook " + actualHeartsTaken + " hearts from " + target.getScoreboardName() + ". Now at " + (newHP/2.0) + " hearts."),
+                                () -> Component.literal("§aTook " + actualHeartsTaken + " hearts from " + target.getScoreboardName() + ". Now at " + (clampedHP/2.0) + " hearts."),
                                 true
                             );
                             return 1;
@@ -228,6 +227,7 @@ public class LifestealCommands {
                     .then(Commands.argument("value", BoolArgumentType.bool())
                         .executes(context -> {
                             LifestealConfig.banOnZeroHearts = BoolArgumentType.getBool(context, "value");
+                            LifestealConfigManager.save(context.getSource().getServer());
                             context.getSource().sendSuccess(() -> Component.literal("§aConfig altered: banOnZeroHearts set to " + LifestealConfig.banOnZeroHearts), true);
                             return 1;
                         })
@@ -238,6 +238,7 @@ public class LifestealCommands {
                     .then(Commands.argument("value", BoolArgumentType.bool())
                         .executes(context -> {
                             LifestealConfig.loseHeartsByNaturalCauses = BoolArgumentType.getBool(context, "value");
+                            LifestealConfigManager.save(context.getSource().getServer());
                             context.getSource().sendSuccess(() -> Component.literal("§aConfig altered: loseHeartsByNaturalCauses set to " + LifestealConfig.loseHeartsByNaturalCauses), true);
                             return 1;
                         })
@@ -272,6 +273,7 @@ public class LifestealCommands {
                     .then(Commands.argument("value", DoubleArgumentType.doubleArg(2.0, 40.0))
                         .executes(context -> {
                             LifestealConfig.reviveAtHearts = DoubleArgumentType.getDouble(context, "value");
+                            LifestealConfigManager.save(context.getSource().getServer());
                             context.getSource().sendSuccess(() -> Component.literal("§aConfig altered: reviveAtHearts set to " + LifestealConfig.reviveAtHearts), true);
                             return 1;
                         })
