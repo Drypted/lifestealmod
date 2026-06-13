@@ -26,7 +26,10 @@ public class RecipeGUI {
 
     public static class ValueAdjusterContainer extends SimpleContainer {
         private final String targetSetting;
-        public ValueAdjusterContainer(String targetSetting) { super(27); this.targetSetting = targetSetting; }
+        public ValueAdjusterContainer(String targetSetting) { 
+            super(27); 
+            this.targetSetting = targetSetting; 
+        }
         public String getTargetSetting() { return this.targetSetting; }
     }
 
@@ -80,7 +83,7 @@ public class RecipeGUI {
         container.setItem(13, createGlass(Items.ANVIL,
                 "§6Max Hearts to Craft: §e" + maxCraftHearts + " hearts §7(Click to Edit)"));
         container.setItem(14, createGlass(Items.NETHERITE_INGOT,
-                "§cAbsolute Max Hearts: §e" + absoluteMaxHearts + " hearts §7(Command only)"));
+            "§cMax Hearts: §e" + absoluteMaxHearts + " hearts §7(Click to Edit)"));
         
         container.setItem(22, createGlass(Items.ARROW, "§eBack to Menu"));
     }
@@ -112,13 +115,14 @@ public class RecipeGUI {
         container.setItem(22, createGlass(Items.ARROW, "§eReturn to Settings"));
     }
 
-    public static void openMaxHeartsAdjuster(ServerPlayer player) {
-        ValueAdjusterContainer container = new ValueAdjusterContainer("max");
+    public static void openMaxHeartsAdjuster(ServerPlayer player, String target) {
+        // Pass the target to the container
+        ValueAdjusterContainer container = new ValueAdjusterContainer(target);
         updateMaxHeartsAdjuster(container);
         
         player.openMenu(new SimpleMenuProvider(
             (id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x3, id, inv, container, 3),
-            Component.literal("Adjust Maximum Hearts for Crafting")
+            Component.literal("Adjust Settings")
         ));
     }
 
