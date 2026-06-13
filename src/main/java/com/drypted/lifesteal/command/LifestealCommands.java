@@ -45,26 +45,26 @@ public class LifestealCommands {
                     int amountToWithdraw = IntegerArgumentType.getInteger(context, "amount");
                     
                     double healthCost = amountToWithdraw * 2.0; 
-                    double currentMax = HeartManager.getMaxHealth(player); //[cite: 20]
+                    double currentMax = HeartManager.getMaxHealth(player);
                     
                     if (currentMax - healthCost < HeartManager.MIN_MAX_HEALTH) {
                         player.sendOverlayMessage(Component.literal("§cYou cannot withdraw your last heart!"));
                         return 0;
                     }
                     
-                    HeartManager.setMaxHealth(player, currentMax - healthCost); //[cite: 20]
+                    HeartManager.setMaxHealth(player, currentMax - healthCost);
                     
-                    if (player.getHealth() > player.getMaxHealth()) { //[cite: 20]
-                        player.setHealth(player.getMaxHealth()); //[cite: 20]
+                    if (player.getHealth() > player.getMaxHealth()) {
+                        player.setHealth(player.getMaxHealth());
                     }
 
-                    ItemStack hearts = ServerItemHelper.createHeart(); //[cite: 20]
-                    hearts.setCount(amountToWithdraw); //[cite: 20]
-                    if (!player.getInventory().add(hearts)) { //[cite: 20]
-                        player.level().addFreshEntity(new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), hearts)); //[cite: 20]
+                    ItemStack hearts = ServerItemHelper.createHeart();
+                    hearts.setCount(amountToWithdraw);
+                    if (!player.getInventory().add(hearts)) {
+                        player.level().addFreshEntity(new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), hearts));
                     }
                     
-                    player.sendOverlayMessage(Component.literal("§aSuccessfully withdrew " + amountToWithdraw + " hearts.")); //[cite: 20]
+                    player.sendOverlayMessage(Component.literal("§aSuccessfully withdrew " + amountToWithdraw + " hearts."));
                     return 1;
                 })
             )
@@ -77,32 +77,23 @@ public class LifestealCommands {
             .then(Commands.argument("target", GameProfileArgument.gameProfile())
                 .executes(context -> {
                     CommandSourceStack source = context.getSource();
-                    Collection<NameAndId> profiles =
-                            GameProfileArgument.getGameProfiles(context, "target");
+                    Collection<NameAndId> profiles = GameProfileArgument.getGameProfiles(context, "target");
 
-                        for (NameAndId profile : profiles) {
-                            GameProfile gameProfile =
-                                new GameProfile(profile.id(), profile.name());
+                    for (NameAndId profile : profiles) {
+                        GameProfile gameProfile = new GameProfile(profile.id(), profile.name());
+                        boolean success = HeartManager.revivePlayer(source.getServer(), gameProfile);
 
-                            boolean success =
-                                HeartManager.revivePlayer(source.getServer(), gameProfile);
-
-                            if (success) {
-                                source.sendSuccess(
-                                    () -> Component.literal(
-                                        "§aSuccessfully revived " + profile.name()
-                                    ),
-                                    true
-                                );
-                            } else {
-                                source.sendFailure(
-                                    Component.literal(
-                                        "§cCould not revive " + profile.name()
-                                        + " (Player may not be eliminated)."
-                                    )
-                                );
-                            }
+                        if (success) {
+                            source.sendSuccess(
+                                () -> Component.literal("§aSuccessfully revived " + profile.name()),
+                                true
+                            );
+                        } else {
+                            source.sendFailure(
+                                Component.literal("§cCould not revive " + profile.name() + " (Player may not be eliminated).")
+                            );
                         }
+                    }
                     return 1;
                 })
             )
@@ -112,7 +103,7 @@ public class LifestealCommands {
     // --- /lifesteal CONTROLLER BRANCH ---
     private static void registerLifestealBase(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("lifesteal")
-            .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_MODERATOR)) // Require Operator privileges for admin commands
+            .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_MODERATOR)) // Require Operator privileges
             
             // /lifesteal debug give_revive_item
             .then(Commands.literal("debug")
@@ -135,22 +126,9 @@ public class LifestealCommands {
                     EnchantmentCapGUI.openMainMenu(player);
                     return 1;
                 })
-)
+            )
 
-            // /lifesteal revive <player>
-            // .then(Commands.literal("revive")
-            //     .then(Commands.argument("target", GameProfileArgument.gameProfile())
-            //         .executes(context -> {
-            //             Collection<GameProfile> profiles = GameProfileArgument.getGameProfiles(context, "target");
-            //             for (GameProfile profile : profiles) {
-            //                 HeartManager.revivePlayer(context.getSource().getServer(), profile);
-            //             }
-            //             return 1;
-            //         })
-            //     )
-            // )
-
-            // /lifesteal set_hearts <player> <amount>
+            // /lifesteal set_hearts <player> <amount in hearts>
             .then(Commands.literal("set_hearts")
                 .then(Commands.argument("player", EntityArgument.player())
                     .then(Commands.argument("amount", DoubleArgumentType.doubleArg(HeartManager.MIN_MAX_HEALTH / 2.0, 1024.0))
@@ -182,30 +160,48 @@ public class LifestealCommands {
                 )
             )
 
-            // /lifesteal give <player> <amount>
+            // /lifesteal give <player> <amount in hearts>
             .then(Commands.literal("give")
                 .then(Commands.argument("player", EntityArgument.player())
-                    .then(Commands.argument("amount", DoubleArgumentType.doubleArg(2.0))
+                    .then(Commands.argument("amount", DoubleArgumentType.doubleArg(0.0))
                         .executes(context -> {
                             ServerPlayer target = EntityArgument.getPlayer(context, "player");
-                            double current = HeartManager.getMaxHealth(target);
-                            double amount = DoubleArgumentType.getDouble(context, "amount");
-                            HeartManager.setMaxHealth(target, current + amount);
+                            double heartsToAdd = DoubleArgumentType.getDouble(context, "amount");
+                            double currentHP = HeartManager.getMaxHealth(target);
+                            double newHP = currentHP + (heartsToAdd * 2.0);
+                            double maxAllowedHP = LifestealConfig.maxHearts;
+                            double minHP = HeartManager.MIN_MAX_HEALTH;
+                            if (newHP > maxAllowedHP) newHP = maxAllowedHP;
+                            if (newHP < minHP) newHP = minHP;
+                            HeartManager.setMaxHealth(target, newHP);
+                            double actualHeartsAdded = (newHP - currentHP) / 2.0;
+                            context.getSource().sendSuccess(
+                                () -> Component.literal("§aAdded " + actualHeartsAdded + " hearts to " + target.getScoreboardName() + ". Now at " + (newHP/2.0) + " hearts."),
+                                true
+                            );
                             return 1;
                         })
                     )
                 )
             )
 
-            // /lifesteal take <player> <amount>
+            // /lifesteal take <player> <amount in hearts>
             .then(Commands.literal("take")
                 .then(Commands.argument("player", EntityArgument.player())
-                    .then(Commands.argument("amount", DoubleArgumentType.doubleArg(2.0))
+                    .then(Commands.argument("amount", DoubleArgumentType.doubleArg(0.0))
                         .executes(context -> {
                             ServerPlayer target = EntityArgument.getPlayer(context, "player");
-                            double current = HeartManager.getMaxHealth(target);
-                            double amount = DoubleArgumentType.getDouble(context, "amount");
-                            HeartManager.setMaxHealth(target, current - amount);
+                            double heartsToTake = DoubleArgumentType.getDouble(context, "amount");
+                            double currentHP = HeartManager.getMaxHealth(target);
+                            double newHP = currentHP - (heartsToTake * 2.0);
+                            double minHP = HeartManager.MIN_MAX_HEALTH;
+                            if (newHP < minHP) newHP = minHP;
+                            HeartManager.setMaxHealth(target, newHP);
+                            double actualHeartsTaken = (currentHP - newHP) / 2.0;
+                            context.getSource().sendSuccess(
+                                () -> Component.literal("§aTook " + actualHeartsTaken + " hearts from " + target.getScoreboardName() + ". Now at " + (newHP/2.0) + " hearts."),
+                                true
+                            );
                             return 1;
                         })
                     )
@@ -220,7 +216,7 @@ public class LifestealCommands {
                 })
             )
 
-            // /lifesteal settings <property> <value>
+            // /lifesteal settings (GUI and direct commands)
             .then(Commands.literal("settings")
                 .executes(context -> {
                     ServerPlayer player = context.getSource().getPlayerOrException();
@@ -252,14 +248,13 @@ public class LifestealCommands {
                     .then(Commands.argument("value", DoubleArgumentType.doubleArg(2.0, 200.0))
                         .executes(context -> {
                             double hearts = DoubleArgumentType.getDouble(context, "value");
-                            LifestealConfig.maxHearts = hearts * 2.0; // store as HP
+                            LifestealConfig.maxHearts = hearts * 2.0;
                             LifestealConfigManager.save(context.getSource().getServer());
                             context.getSource().sendSuccess(() -> Component.literal("§aConfig saved: absolute max hearts = " + hearts + " hearts"), true);
                             return 1;
                         })
                     )
                 )
-
                 // maxHeartsToCraft (crafting limit)
                 .then(Commands.literal("maxHeartsToCraft")
                     .then(Commands.argument("value", DoubleArgumentType.doubleArg(2.0, 20.0))
