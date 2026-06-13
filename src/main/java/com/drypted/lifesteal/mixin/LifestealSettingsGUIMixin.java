@@ -93,7 +93,7 @@ public class LifestealSettingsGUIMixin {
             boolean current = field.getBoolean(null);
             field.setBoolean(null, !current);
             com.drypted.lifesteal.config.LifestealConfigManager.save(this.player.level().getServer());
-            this.player.sendSystemMessage(Component.literal("§a" + fieldName + " set to " + !current));
+            this.player.sendSystemMessage(Component.literal(LifestealConfig.messagePrefix + "§a" + fieldName + " set to " + !current));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -104,6 +104,6 @@ public class LifestealSettingsGUIMixin {
         if (newLimit < 0) newLimit = 0;
         LifestealConfig.maceCraftsRemaining = newLimit;
         com.drypted.lifesteal.config.LifestealConfigManager.save(this.player.level().getServer());
-        this.player.sendSystemMessage(Component.literal("§aMace crafts remaining: " + newLimit));
+        this.player.sendSystemMessage(Component.literal(LifestealConfig.messagePrefix + "§aMace crafts remaining: " + newLimit));
     }
 }

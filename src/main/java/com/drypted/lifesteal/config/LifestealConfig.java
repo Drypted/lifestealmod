@@ -40,6 +40,9 @@ public class LifestealConfig {
     public static int maceCraftsRemaining = 1;
     public static boolean broadcastMaceCraft = true;
     
+    // Message prefix for all system messages (dark red color §4)
+    public static String messagePrefix = "§4[LIFESTEAL] ";
+    
     static {
         for (int i = 0; i < 9; i++) {
             heartRecipeMatrix[i] = ItemStack.EMPTY;

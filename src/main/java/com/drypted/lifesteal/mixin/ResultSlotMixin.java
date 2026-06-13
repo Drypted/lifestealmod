@@ -29,7 +29,7 @@ public class ResultSlotMixin {
             String message = !LifestealConfig.maceCraftingEnabled ? 
                 "§cMace crafting is disabled!" : "§cThe mace limit has been reached!";
             
-            player.sendSystemMessage(Component.literal(message));
+            player.sendSystemMessage(Component.literal(LifestealConfig.messagePrefix + message));
             ci.cancel();
 
             // Clear the result slot (index 0) to avoid ghost item

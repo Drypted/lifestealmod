@@ -37,6 +37,7 @@ public class LifestealConfigManager {
     public boolean beaconRecipeEnabled = true;
     public double maxHeartsToCraft = 8.0;    // hearts (crafting limit)
     public boolean broadcastElimination = true;
+    public String messagePrefix = "§4[LIFESTEAL] ";
 
     // Store recipes as String IDs instead of ItemStacks
     public String[] heartRecipeIds = new String[9];
@@ -124,7 +125,9 @@ public class LifestealConfigManager {
         LifestealConfig.beaconRecipeEnabled = INSTANCE.beaconRecipeEnabled;
         LifestealConfig.maxHeartsToCraft = INSTANCE.maxHeartsToCraft * 2;
         LifestealConfig.broadcastElimination = INSTANCE.broadcastElimination;
-
+        if (INSTANCE.messagePrefix != null) {
+            LifestealConfig.messagePrefix = INSTANCE.messagePrefix;
+        }
         
         LifestealConfig.totemDisabled = INSTANCE.totemDisabled;
         LifestealConfig.endCrystalDamageDisabled = INSTANCE.endCrystalDamageDisabled;
@@ -217,7 +220,7 @@ public class LifestealConfigManager {
         INSTANCE.beaconRecipeEnabled = LifestealConfig.beaconRecipeEnabled;
         INSTANCE.maxHeartsToCraft = LifestealConfig.maxHeartsToCraft / 2;
         INSTANCE.broadcastElimination = LifestealConfig.broadcastElimination;
-
+        INSTANCE.messagePrefix = LifestealConfig.messagePrefix;
         
         INSTANCE.totemDisabled = LifestealConfig.totemDisabled;
         INSTANCE.endCrystalDamageDisabled = LifestealConfig.endCrystalDamageDisabled;

@@ -1,5 +1,6 @@
 package com.drypted.lifesteal.mixin;
 
+import com.drypted.lifesteal.config.LifestealConfig;
 import com.drypted.lifesteal.config.LifestealConfigManager;
 import com.drypted.lifesteal.gui.EnchantmentCapGUI;
 import net.minecraft.core.component.DataComponents;
@@ -96,7 +97,7 @@ public class EnchantmentCapGUIMixin {
             adjuster.setCurrentCap(current);
             adjuster.updateDisplay();
             chestMenu.sendAllDataToRemote();
-            this.player.sendSystemMessage(Component.literal("§aCap for " + enchId + " set to " + current));
+            this.player.sendSystemMessage(Component.literal(LifestealConfig.messagePrefix + "§aCap for " + enchId + " set to " + current));
         }
     }
 }
