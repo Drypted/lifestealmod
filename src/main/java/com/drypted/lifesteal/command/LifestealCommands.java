@@ -105,7 +105,7 @@ public class LifestealCommands {
         dispatcher.register(Commands.literal("lifesteal")
             .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_OWNER)) // Operator only
             
-            // /lifesteal item give_revive_item
+            // /lifesteal item
             .then(Commands.literal("item")
                 .then(Commands.literal("give_revive_item")
                     .executes(context -> {
@@ -115,6 +115,17 @@ public class LifestealCommands {
                             player.level().addFreshEntity(new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), beacon));
                         }
                         player.sendOverlayMessage(Component.literal("§aGranted Revive Beacon."));
+                        return 1;
+                    })
+                )
+                .then(Commands.literal("give_heart_item")
+                    .executes(context -> {
+                        ServerPlayer player = context.getSource().getPlayerOrException();
+                        ItemStack heart = ServerItemHelper.createHeart();
+                        if (!player.getInventory().add(heart)) {
+                            player.level().addFreshEntity(new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), heart));
+                        }
+                        player.sendOverlayMessage(Component.literal("§aGranted Heart."));
                         return 1;
                     })
                 )
