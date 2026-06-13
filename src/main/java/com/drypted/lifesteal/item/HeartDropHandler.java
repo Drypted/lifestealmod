@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 
 public class HeartDropHandler {
     public static void tryDropHeart(ServerPlayer victim, ServerPlayer killer) {
-        if (HeartManager.getMaxHealth(killer) >= HeartManager.MAX_MAX_HEALTH) {
+        if (HeartManager.getMaxHealth(killer) >= HeartManager.DEFAULT_MAX_HEALTH) {
             
             // FIX: Generate an authentic heart using your helper class
             ItemStack heartStack = ServerItemHelper.createHeart();

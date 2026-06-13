@@ -153,12 +153,17 @@ public class LifestealCommands {
             // /lifesteal set_hearts <player> <amount>
             .then(Commands.literal("set_hearts")
                 .then(Commands.argument("player", EntityArgument.player())
-                    .then(Commands.argument("amount", DoubleArgumentType.doubleArg(HeartManager.MIN_MAX_HEALTH, HeartManager.MAX_MAX_HEALTH))
+                    .then(Commands.argument("amount", DoubleArgumentType.doubleArg(HeartManager.MIN_MAX_HEALTH / 2.0, 1024.0))
                         .executes(context -> {
                             ServerPlayer target = EntityArgument.getPlayer(context, "player");
-                            double amount = DoubleArgumentType.getDouble(context, "amount");
-                            HeartManager.setMaxHealth(target, amount);
-                            context.getSource().sendSuccess(() -> Component.literal("§aSet " + target.getScoreboardName() + "'s max health value to " + amount), true);
+                            double requestedHearts = DoubleArgumentType.getDouble(context, "amount");
+                            double maxAllowedHearts = LifestealConfig.maxHearts / 2.0;
+                            double finalHearts = Math.min(requestedHearts, maxAllowedHearts);
+                            HeartManager.setMaxHealth(target, finalHearts * 2.0);
+                            context.getSource().sendSuccess(
+                                () -> Component.literal("§aSet " + target.getScoreboardName() + "'s max health to " + finalHearts + " hearts"),
+                                true
+                            );
                             return 1;
                         })
                     )
@@ -219,7 +224,7 @@ public class LifestealCommands {
             .then(Commands.literal("settings")
                 .executes(context -> {
                     ServerPlayer player = context.getSource().getPlayerOrException();
-                    LifestealSettingsGUI.openMainSettings(player);
+                    LifestealSettingsGUI.openMainMenu(player);
                     return 1;
                 })
                 // banOnZeroHearts

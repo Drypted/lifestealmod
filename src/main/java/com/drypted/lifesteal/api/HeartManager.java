@@ -26,17 +26,21 @@ import java.util.Set;
 
 public class HeartManager {
 
-    public static final double DEFAULT_MAX_HEALTH = 20.0;
-    public static final double MIN_MAX_HEALTH = 2.0;
-    public static final double MAX_MAX_HEALTH = 40.0;
-    public static final double HEART_STEAL_AMOUNT = 2.0;
+    public static final double DEFAULT_MAX_HEALTH = 20.0; // 10 hearts
+    public static final double MIN_MAX_HEALTH = 2.0;      // 1 heart
+
+    public static final double HEART_STEAL_AMOUNT = 2.0;   // 1 heart
+
+    public static double getMaxHeartLimit() {
+        return LifestealConfig.maxHearts; // in HP (2 per heart)
+    }
 
     public static double getMaxHealth(ServerPlayer player) {
         return player.getAttachedOrCreate(Lifesteal.LIFESTEAL_MAX_HEALTH);
     }
 
     public static void setMaxHealth(ServerPlayer player, double newMax) {
-        double clamped = Math.min(MAX_MAX_HEALTH, Math.max(MIN_MAX_HEALTH, newMax));
+        double clamped = Math.min(getMaxHeartLimit(), Math.max(MIN_MAX_HEALTH, newMax));
         player.setAttached(Lifesteal.LIFESTEAL_MAX_HEALTH, clamped);
         updateHealthAttribute(player);
     }
@@ -67,20 +71,18 @@ public class HeartManager {
         double killerHealth = getMaxHealth(killer);
 
         double newVictim = Math.max(MIN_MAX_HEALTH, victimHealth - HEART_STEAL_AMOUNT);
-        double newKiller = Math.min(MAX_MAX_HEALTH, killerHealth + HEART_STEAL_AMOUNT);
+        double newKiller = Math.min(getMaxHeartLimit(), killerHealth + HEART_STEAL_AMOUNT);
 
         setMaxHealth(victim, newVictim);
         setMaxHealth(killer, newKiller);
-
         killer.heal((float) HEART_STEAL_AMOUNT);
     }
 
     public static boolean revivePlayer(MinecraftServer server, GameProfile profile) {
         boolean revived = false;
-
         NameAndId nameAndId = new NameAndId(profile.id(), profile.name());
 
-        // 1. Unban if they are banned
+        // 1. Unban if banned
         if (server.getPlayerList().getBans().isBanned(nameAndId)) {
             server.getPlayerList().getBans().remove(nameAndId);
             revived = true;
@@ -91,63 +93,37 @@ public class HeartManager {
         BlockPos overworldSpawn = overworld.getLevelData().getRespawnData().pos();
 
         if (onlinePlayer != null) {
-            // 2. Online Player Logic (Spectator handling)
             if (onlinePlayer.gameMode.getGameModeForPlayer() == GameType.SPECTATOR) {
                 onlinePlayer.setGameMode(GameType.SURVIVAL);
             }
             setMaxHealth(onlinePlayer, LifestealConfig.reviveAtHearts);
             onlinePlayer.setHealth((float) LifestealConfig.reviveAtHearts);
-            
-            // Teleport securely to overworld spawn
-            onlinePlayer.teleportTo(
-                    overworld,
-                    overworldSpawn.getX() + 0.5,
-                    overworldSpawn.getY(),
-                    overworldSpawn.getZ() + 0.5,
-                    Set.of(),
-                    0.0F,
-                    0.0F,
-                    true
-            );
+            onlinePlayer.teleportTo(overworld, overworldSpawn.getX() + 0.5, overworldSpawn.getY(),
+                    overworldSpawn.getZ() + 0.5, Set.of(), 0.0F, 0.0F, true);
             onlinePlayer.sendOverlayMessage(Component.literal("§aYou have been revived!"));
             revived = true;
         } else {
-            // 3. Offline Player Logic (Raw NBT manipulation)
             try {
                 File playerDataDir = server.getWorldPath(LevelResource.PLAYER_DATA_DIR).toFile();
                 File playerFile = new File(playerDataDir, profile.id() + ".dat");
-                
                 if (playerFile.exists()) {
                     CompoundTag tag = NbtIo.readCompressed(playerFile.toPath(), NbtAccounter.unlimitedHeap());
-                    
-                    // Force Gamemode to Survival
                     tag.putInt("playerGameType", GameType.SURVIVAL.getId());
-                    
-                    // Set correct Health
                     tag.putFloat("Health", (float) LifestealConfig.reviveAtHearts);
-                    
-                    // Force position to Overworld Spawn
                     ListTag posTag = new ListTag();
                     posTag.add(DoubleTag.valueOf(overworldSpawn.getX() + 0.5));
                     posTag.add(DoubleTag.valueOf(overworldSpawn.getY()));
                     posTag.add(DoubleTag.valueOf(overworldSpawn.getZ() + 0.5));
                     tag.put("Pos", posTag);
                     tag.putString("Dimension", Level.OVERWORLD.identifier().toString());
-
-                    // Modify Lifesteal specific max health attachment dynamically
                     CompoundTag fabricAttachments = tag.getCompound("fabric:attachments").orElse(new CompoundTag());
                     fabricAttachments.putDouble("lifesteal:max_health", LifestealConfig.reviveAtHearts);
                     tag.put("fabric:attachments", fabricAttachments);
-
-                    // Save modifications
                     NbtIo.writeCompressed(tag, playerFile.toPath());
                     revived = true;
                 }
-            } catch (Exception e) {
-                
-            }
+            } catch (Exception ignored) {}
         }
-
         return revived;
     }
 }
