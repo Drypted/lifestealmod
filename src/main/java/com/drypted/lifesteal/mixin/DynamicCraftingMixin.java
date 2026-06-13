@@ -67,15 +67,19 @@ public class DynamicCraftingMixin {
                 ItemStack recipeResult = craftingRecipe.assemble(input);
 
                 if (recipeResult.isItemEnabled(level.enabledFeatures())) {
-
-                    if (recipeResult.is(Items.MACE)
-                            && LifestealConfig.maceCraftingEnabled
-                            && LifestealConfig.maceCraftsRemaining <= 0) {
-
-                        result = ItemStack.EMPTY;
-                    } else {
-                        result = recipeResult;
+                    
+                    // Check if it's a mace and apply restrictions
+                    if (recipeResult.is(Items.MACE)) {
+                        if (!LifestealConfig.maceCraftingEnabled || LifestealConfig.maceCraftsRemaining <= 0) {
+                            // Explicitly clear the container so the item never appears
+                            resultContainer.setItem(0, ItemStack.EMPTY);
+                            menu.broadcastChanges();
+                            return;
+                        }
                     }
+                    
+                    // If everything is fine, we don't need to do anything else 
+                    // because vanilla already set the recipe result.
                 }
             }
         }

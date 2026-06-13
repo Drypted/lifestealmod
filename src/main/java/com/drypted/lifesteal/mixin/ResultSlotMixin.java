@@ -22,10 +22,14 @@ public class ResultSlotMixin {
     @Inject(method = "onTake", at = @At("HEAD"), cancellable = true)
     private void lifesteal$onTake(Player player, ItemStack carried, CallbackInfo ci) {
         if (!carried.is(Items.MACE)) return;
-        if (!LifestealConfig.maceCraftingEnabled) return;
 
-        if (LifestealConfig.maceCraftsRemaining <= 0) {
-            player.sendSystemMessage(Component.literal("§cThe mace limit has been reached!"));
+        // Block if disabled OR limit reached
+        if (!LifestealConfig.maceCraftingEnabled || LifestealConfig.maceCraftsRemaining <= 0) {
+            
+            String message = !LifestealConfig.maceCraftingEnabled ? 
+                "§cMace crafting is disabled!" : "§cThe mace limit has been reached!";
+            
+            player.sendSystemMessage(Component.literal(message));
             ci.cancel();
 
             // Clear the result slot (index 0) to avoid ghost item
