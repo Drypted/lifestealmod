@@ -25,23 +25,25 @@ public class EnchantmentCapGUIMixin {
     private void onContainerClick(ServerboundContainerClickPacket packet, CallbackInfo ci) {
         if (!(this.player.containerMenu instanceof ChestMenu chestMenu)) return;
 
-        if (chestMenu.getContainer() instanceof EnchantmentCapGUI.CapListContainer) {
+        if (chestMenu.getContainer() instanceof EnchantmentCapGUI.CapListContainer container) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
-            chestMenu.sendAllDataToRemote();
 
             int slot = packet.slotNum();
-            ItemStack clicked = chestMenu.getContainer().getItem(slot);
+            ItemStack clicked = container.getItem(slot);
+            boolean updated = false;
 
-            // Left pagination
-            if (slot == 45) { EnchantmentCapGUI.changeLeftPage(this.player, -1); return; }
-            if (slot == 47) { EnchantmentCapGUI.changeLeftPage(this.player, +1); return; }
-            // Right pagination
-            if (slot == 48) { EnchantmentCapGUI.changeRightPage(this.player, -1); return; }
-            if (slot == 50) { EnchantmentCapGUI.changeRightPage(this.player, +1); return; }
-            // Category switching
-            if (slot == 51) { EnchantmentCapGUI.changeCategory(this.player, -1); return; }
-            if (slot == 53) { EnchantmentCapGUI.changeCategory(this.player, +1); return; }
+            // Updated Layout Navigation Slots
+            if (slot == 45) { EnchantmentCapGUI.changeLeftPage(this.player, -1, container); updated = true; }
+            if (slot == 47) { EnchantmentCapGUI.changeLeftPage(this.player, +1, container); updated = true; }
+            if (slot == 50) { EnchantmentCapGUI.changeRightPage(this.player, -1, container); updated = true; }
+            if (slot == 52) { EnchantmentCapGUI.changeRightPage(this.player, +1, container); updated = true; }
+            if (slot == 53) { EnchantmentCapGUI.changeCategory(this.player, +1, container); updated = true; } // Cycles forward
+
+            if (updated) {
+                chestMenu.sendAllDataToRemote(); // Sync to client without resetting mouse
+                return;
+            }
 
             // Handle clicks on enchantment items (both active caps and books)
             if (!clicked.isEmpty() && (clicked.is(Items.ENCHANTED_BOOK) || clicked.has(DataComponents.STORED_ENCHANTMENTS))) {
