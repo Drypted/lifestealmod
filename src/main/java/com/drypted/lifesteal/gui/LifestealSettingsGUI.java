@@ -17,7 +17,6 @@ import net.minecraft.world.item.component.ItemLore;
 
 public class LifestealSettingsGUI {
 
-    // ----- Containers -----
     public static class SettingsMainContainer extends SimpleContainer {
         public SettingsMainContainer() { super(27); }
     }
@@ -26,54 +25,24 @@ public class LifestealSettingsGUI {
         public MaceLimitContainer() { super(27); }
     }
 
-    // ----- Open main settings GUI -----
-    public static void openMainSettings(ServerPlayer player) {
-        SettingsMainContainer container = new SettingsMainContainer();
-        // Fill with gray panes
+    public static void updateMainSettings(SettingsMainContainer container) {
         for (int i = 0; i < 27; i++) {
             container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
         }
 
-        // Toggle: Disable Totem of Undying
-        container.setItem(10, createToggleItem(
-                LifestealConfig.totemDisabled,
-                "Disable Totem of Undying",
-                "Totems will not revive players"
-        ));
-
-        // Toggle: Disable End Crystal damage
-        container.setItem(11, createToggleItem(
-                LifestealConfig.endCrystalDamageDisabled,
-                "Disable End Crystal damage",
-                "Crystals deal no damage to players or environment"
-        ));
-
-        // Toggle: Respawn Anchor only in Nether
-        container.setItem(12, createToggleItem(
-                LifestealConfig.respawnAnchorNetherOnly,
-                "Respawn Anchor only in Nether",
-                "Cannot be charged in Overworld or End"
-        ));
-
-        // Toggle: Disable Ender Pearls
-        container.setItem(13, createToggleItem(
-                LifestealConfig.enderPearlDisabled,
-                "Disable Ender Pearls",
-                "Right-clicking does nothing"
-        ));
-
-        // Toggle: Dragon Egg not allowed in Ender Chests
-        container.setItem(14, createToggleItem(
-                LifestealConfig.dragonEggEnderChestDisabled,
-                "Dragon Egg cannot be put in Ender Chests",
-                "Protects the egg from being hidden"
-        ));
-
-        // Mace settings (opens submenu)
+        container.setItem(10, createToggleItem(LifestealConfig.totemDisabled, "Disable Totem of Undying", "Totems will not revive players"));
+        container.setItem(11, createToggleItem(LifestealConfig.endCrystalDamageDisabled, "Disable End Crystal damage", "Crystals deal no damage to players or environment"));
+        container.setItem(12, createToggleItem(LifestealConfig.respawnAnchorNetherOnly, "Respawn Anchor only in Nether", "Cannot be charged in Overworld or End"));
+        container.setItem(13, createToggleItem(LifestealConfig.enderPearlDisabled, "Disable Ender Pearls", "Right-clicking does nothing"));
+        container.setItem(14, createToggleItem(LifestealConfig.dragonEggEnderChestDisabled, "Dragon Egg cannot be put in Ender Chests", "Protects the egg from being hidden"));
+        
         container.setItem(16, createMaceSettingsItem());
-
-        // Back button? Not needed, just close with ESC. But add a close button if desired.
         container.setItem(22, createGlass(Items.BARRIER, "§cClose"));
+    }
+
+    public static void openMainSettings(ServerPlayer player) {
+        SettingsMainContainer container = new SettingsMainContainer();
+        updateMainSettings(container);
 
         player.openMenu(new SimpleMenuProvider(
                 (id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x3, id, inv, container, 3),
@@ -81,21 +50,13 @@ public class LifestealSettingsGUI {
         ));
     }
 
-    // ----- Open mace limit adjuster -----
-    public static void openMaceLimitAdjuster(ServerPlayer player) {
-        MaceLimitContainer container = new MaceLimitContainer();
+    public static void updateMaceLimitAdjuster(MaceLimitContainer container) {
         for (int i = 0; i < 27; i++) {
             container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
         }
 
-        // Mace crafting toggle
-        container.setItem(10, createToggleItem(
-                LifestealConfig.maceCraftingEnabled,
-                "Enable Mace Crafting",
-                "If disabled, maces cannot be crafted"
-        ));
+        container.setItem(10, createToggleItem(LifestealConfig.maceCraftingEnabled, "Enable Mace Crafting", "If disabled, maces cannot be crafted"));
 
-        // Remaining crafts display and adjust buttons
         ItemStack display = createGlass(Items.PAPER, "§eRemaining Mace Crafts: §a" + LifestealConfig.maceCraftsRemaining);
         container.setItem(13, display);
 
@@ -104,15 +65,13 @@ public class LifestealSettingsGUI {
         container.setItem(14, createGlass(Items.LIME_STAINED_GLASS_PANE, "§a+1"));
         container.setItem(15, createGlass(Items.EMERALD_BLOCK, "§a+5"));
 
-        // Broadcast toggle
-        container.setItem(16, createToggleItem(
-                LifestealConfig.broadcastMaceCraft,
-                "Broadcast Mace Craft",
-                "Announce to all players when a mace is crafted"
-        ));
-
-        // Back button
+        container.setItem(16, createToggleItem(LifestealConfig.broadcastMaceCraft, "Broadcast Mace Craft", "Announce to all players when a mace is crafted"));
         container.setItem(22, createGlass(Items.ARROW, "§eBack to Main Settings"));
+    }
+
+    public static void openMaceLimitAdjuster(ServerPlayer player) {
+        MaceLimitContainer container = new MaceLimitContainer();
+        updateMaceLimitAdjuster(container);
 
         player.openMenu(new SimpleMenuProvider(
                 (id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x3, id, inv, container, 3),
@@ -120,7 +79,6 @@ public class LifestealSettingsGUI {
         ));
     }
 
-    // ----- Helper methods -----
     private static ItemStack createGlass(Item item, String name) {
         ItemStack stack = new ItemStack(item);
         stack.set(DataComponents.CUSTOM_NAME, Component.literal(name).withStyle(s -> s.withItalic(false)));
@@ -131,8 +89,7 @@ public class LifestealSettingsGUI {
         stack.set(
             DataComponents.LORE,
             new ItemLore(List.of(
-                Component.literal(text)
-                    .withStyle(s -> s.withItalic(false))
+                Component.literal(text).withStyle(s -> s.withItalic(false))
             ))
         );
     }
@@ -149,10 +106,7 @@ public class LifestealSettingsGUI {
     private static ItemStack createMaceSettingsItem() {
         ItemStack stack = new ItemStack(Items.MACE);
         stack.set(DataComponents.CUSTOM_NAME, Component.literal("§5Mace Settings").withStyle(s -> s.withItalic(false)));
-        setLore(
-            stack,
-            "§7Click to configure mace crafting limit and broadcasts"
-        );
+        setLore(stack, "§7Click to configure mace crafting limit and broadcasts");
         return stack;
     }
 }

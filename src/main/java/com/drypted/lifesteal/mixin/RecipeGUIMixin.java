@@ -29,7 +29,6 @@ public class RecipeGUIMixin {
         if (chestMenu.getContainer() instanceof RecipeGUI.MainMenuContainer) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
-            chestMenu.sendAllDataToRemote();
             
             int slot = packet.slotNum();
             if (slot == 11) this.player.level().getServer().execute(() -> RecipeGUI.openRecipeEditor(this.player, "heart"));
@@ -38,72 +37,62 @@ public class RecipeGUIMixin {
             return;
         }
 
-        // --- 2. SETTINGS MENU HANDLING (updated) ---
-        if (chestMenu.getContainer() instanceof RecipeGUI.SettingsContainer) {
+        // --- 2. SETTINGS MENU HANDLING ---
+        if (chestMenu.getContainer() instanceof RecipeGUI.SettingsContainer container) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
-            chestMenu.sendAllDataToRemote();
 
             int slot = packet.slotNum();
-            if (slot == 10) {
-                LifestealConfig.heartRecipeEnabled = !LifestealConfig.heartRecipeEnabled;
-                this.player.level().getServer().execute(() -> RecipeGUI.openSettingsMenu(this.player));
-            } else if (slot == 11) {
-                LifestealConfig.beaconRecipeEnabled = !LifestealConfig.beaconRecipeEnabled;
-                this.player.level().getServer().execute(() -> RecipeGUI.openSettingsMenu(this.player));
-            } else if (slot == 13) {
+            boolean updated = false;
+
+            if (slot == 10) { LifestealConfig.heartRecipeEnabled = !LifestealConfig.heartRecipeEnabled; updated = true; } 
+            else if (slot == 11) { LifestealConfig.beaconRecipeEnabled = !LifestealConfig.beaconRecipeEnabled; updated = true; } 
+            else if (slot == 13) {
                 this.player.level().getServer().execute(() -> RecipeGUI.openMaxHeartsAdjuster(this.player));
+                return;
             } else if (slot == 22) {
                 this.player.level().getServer().execute(() -> RecipeGUI.openMainMenu(this.player));
+                return;
+            }
+            
+            if (updated) {
+                RecipeGUI.updateSettingsMenu(container);
+                chestMenu.sendAllDataToRemote();
             }
             return;
         }
 
         // --- 3. VALUE ADJUSTER (for max hearts to craft) ---
-        if (chestMenu.getContainer() instanceof RecipeGUI.ValueAdjusterContainer adjuster) {
+        if (chestMenu.getContainer() instanceof RecipeGUI.ValueAdjusterContainer container) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
-            chestMenu.sendAllDataToRemote();
 
             int slot = packet.slotNum();
             double currentHearts = LifestealConfig.maxHeartsToCraft / 2.0;
             double absoluteMaxHearts = LifestealConfig.maxHearts / 2.0;
-            
-            // Minimum crafting limit is 2 hearts (can't be lower than that)
             double minCraftLimit = 2.0;
+            boolean updated = false;
 
-            if (slot == 10) {
-                // -1 Heart
-                currentHearts = Math.max(minCraftLimit, currentHearts - 1.0);
-            } else if (slot == 11) {
-                // -0.5 Heart
-                currentHearts = Math.max(minCraftLimit, currentHearts - 0.5);
-            } else if (slot == 15) {
-                // +0.5 Heart
-                currentHearts = Math.min(absoluteMaxHearts, currentHearts + 0.5);
-            } else if (slot == 16) {
-                // +1 Heart
-                currentHearts = Math.min(absoluteMaxHearts, currentHearts + 1.0);
-            } else if (slot == 22) {
-                // Return to settings
+            if (slot == 10) { currentHearts = Math.max(minCraftLimit, currentHearts - 1.0); updated = true; } 
+            else if (slot == 11) { currentHearts = Math.max(minCraftLimit, currentHearts - 0.5); updated = true; } 
+            else if (slot == 15) { currentHearts = Math.min(absoluteMaxHearts, currentHearts + 0.5); updated = true; } 
+            else if (slot == 16) { currentHearts = Math.min(absoluteMaxHearts, currentHearts + 1.0); updated = true; } 
+            else if (slot == 22) {
                 this.player.level().getServer().execute(() -> RecipeGUI.openSettingsMenu(this.player));
-                return;
-            } else {
                 return;
             }
 
-            // Update the config value (convert hearts back to HP)
-            LifestealConfig.maxHeartsToCraft = currentHearts * 2.0;
-            
-            // Save config to disk
-            com.drypted.lifesteal.config.LifestealConfigManager.save(this.player.level().getServer());
-            
-            // Refresh the adjuster GUI
-            this.player.level().getServer().execute(() -> RecipeGUI.openMaxHeartsAdjuster(this.player));
+            if (updated) {
+                LifestealConfig.maxHeartsToCraft = currentHearts * 2.0;
+                com.drypted.lifesteal.config.LifestealConfigManager.save(this.player.level().getServer());
+                
+                RecipeGUI.updateMaxHeartsAdjuster(container);
+                chestMenu.sendAllDataToRemote();
+            }
             return;
         }
 
-        // --- 4. RECIPE MATRIX EDITOR HANDLING (unchanged except save triggers config save) ---
+        // --- 4. RECIPE MATRIX EDITOR HANDLING ---
         if (chestMenu.getContainer() instanceof RecipeGUI.EditorContainer editor) {
             int slot = packet.slotNum();
             if (slot < 0 || slot >= editor.getContainerSize()) return;
@@ -123,7 +112,6 @@ public class RecipeGUIMixin {
                     targetMatrix[i] = editor.getItem(editableSlots[i]).copy();
                 }
                 this.player.sendOverlayMessage(Component.literal("§aRecipe saved."));
-                // Save config to disk
                 com.drypted.lifesteal.config.LifestealConfigManager.save(this.player.level().getServer());
                 this.player.level().getServer().execute(() -> RecipeGUI.openMainMenu(this.player));
             } else if (slot == 49 || slot == 53) {

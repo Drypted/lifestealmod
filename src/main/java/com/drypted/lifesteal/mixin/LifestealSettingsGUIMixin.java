@@ -25,10 +25,9 @@ public class LifestealSettingsGUIMixin {
         if (!(this.player.containerMenu instanceof ChestMenu chestMenu)) return;
 
         // ----- Main Settings GUI -----
-        if (chestMenu.getContainer() instanceof LifestealSettingsGUI.SettingsMainContainer) {
+        if (chestMenu.getContainer() instanceof LifestealSettingsGUI.SettingsMainContainer container) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
-            chestMenu.sendAllDataToRemote();
 
             int slot = packet.slotNum();
             switch (slot) {
@@ -38,40 +37,49 @@ public class LifestealSettingsGUIMixin {
                 case 13 -> toggleValue("enderPearlDisabled");
                 case 14 -> toggleValue("dragonEggEnderChestDisabled");
                 case 16 -> {
-                    // Open mace limit submenu
                     this.player.level().getServer().execute(() -> LifestealSettingsGUI.openMaceLimitAdjuster(this.player));
+                    return;
                 }
-                case 22 -> this.player.closeContainer();
+                case 22 -> {
+                    this.player.closeContainer();
+                    return;
+                }
             }
-            // Refresh GUI after toggles
+            
+            // Refresh GUI in-place
             if (slot >= 10 && slot <= 14) {
-                this.player.level().getServer().execute(() -> LifestealSettingsGUI.openMainSettings(this.player));
+                LifestealSettingsGUI.updateMainSettings(container);
+                chestMenu.sendAllDataToRemote();
             }
             return;
         }
 
         // ----- Mace Limit Adjuster GUI -----
-        if (chestMenu.getContainer() instanceof LifestealSettingsGUI.MaceLimitContainer) {
+        if (chestMenu.getContainer() instanceof LifestealSettingsGUI.MaceLimitContainer container) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
-            chestMenu.sendAllDataToRemote();
 
             int slot = packet.slotNum();
+            boolean updated = false;
+
             switch (slot) {
-                case 10 -> toggleValue("maceCraftingEnabled");
-                case 11 -> adjustMaceLimit(-1);
-                case 12 -> adjustMaceLimit(-5);
-                case 14 -> adjustMaceLimit(1);
-                case 15 -> adjustMaceLimit(5);
-                case 16 -> toggleValue("broadcastMaceCraft");
+                case 10 -> { toggleValue("maceCraftingEnabled"); updated = true; }
+                case 11 -> { adjustMaceLimit(-1); updated = true; }
+                case 12 -> { adjustMaceLimit(-5); updated = true; }
+                case 14 -> { adjustMaceLimit(1); updated = true; }
+                case 15 -> { adjustMaceLimit(5); updated = true; }
+                case 16 -> { toggleValue("broadcastMaceCraft"); updated = true; }
                 case 22 -> {
-                    // Back to main settings
                     this.player.level().getServer().execute(() -> LifestealSettingsGUI.openMainSettings(this.player));
                     return;
                 }
             }
-            // Refresh current GUI
-            this.player.level().getServer().execute(() -> LifestealSettingsGUI.openMaceLimitAdjuster(this.player));
+            
+            // Refresh GUI in-place
+            if (updated) {
+                LifestealSettingsGUI.updateMaceLimitAdjuster(container);
+                chestMenu.sendAllDataToRemote();
+            }
         }
     }
 
@@ -80,7 +88,6 @@ public class LifestealSettingsGUIMixin {
             java.lang.reflect.Field field = LifestealConfig.class.getField(fieldName);
             boolean current = field.getBoolean(null);
             field.setBoolean(null, !current);
-            // Save config to disk
             com.drypted.lifesteal.config.LifestealConfigManager.save(this.player.level().getServer());
             this.player.sendSystemMessage(Component.literal("§a" + fieldName + " set to " + !current));
         } catch (Exception e) {
