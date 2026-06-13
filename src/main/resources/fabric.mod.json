@@ -3,13 +3,12 @@
 	"id": "lifesteal",
 	"version": "${version}",
 	"name": "Lifesteal",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A Lifesteal mod identical to the orignal Lifesteal SMP.",
 	"authors": [
-		"Me!"
+		"Drypted"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/sdphantomz3/LifestealMod"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/lifesteal/icon.png",
