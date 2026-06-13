@@ -30,12 +30,19 @@ public class ReviveGUIMixin {
             // Validate that this is explicitly the Revive Container
             if (chestMenu.getContainer() instanceof ReviveGUI.ReviveContainer) {
                 ci.cancel(); // Prevent taking items out of the menu
+                chestMenu.setCarried(ItemStack.EMPTY); // Clear any predicted cursor items
 
                 int slot = packet.slotNum();
-                if (slot < 0 || slot >= chestMenu.getContainer().getContainerSize()) return;
+                if (slot < 0 || slot >= chestMenu.getContainer().getContainerSize()) {
+                    chestMenu.sendAllDataToRemote(); // Sync to prevent ghost items on out-of-bounds clicks
+                    return;
+                }
 
                 ItemStack clickedItem = chestMenu.getContainer().getItem(slot);
-                if (clickedItem.isEmpty()) return;
+                if (clickedItem.isEmpty()) {
+                    chestMenu.sendAllDataToRemote(); // Sync to prevent ghost items on empty slots
+                    return;
+                }
 
                 ResolvableProfile profileComponent = clickedItem.get(DataComponents.PROFILE);
                 if (profileComponent != null && profileComponent.partialProfile() != null) {
@@ -58,10 +65,14 @@ public class ReviveGUIMixin {
                         }
                         
                         this.player.closeContainer();
+                        return; // Menu is closed, no need to sync data to the client
                     } else {
                         this.player.sendOverlayMessage(Component.literal("§cCould not revive " + targetProfile.name() + "."));
                     }
                 }
+                
+                // If we reach this point (failed revive or invalid profile item clicked), sync the client!
+                chestMenu.sendAllDataToRemote();
             }
         }
     }

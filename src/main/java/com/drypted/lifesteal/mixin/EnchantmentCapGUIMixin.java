@@ -31,22 +31,16 @@ public class EnchantmentCapGUIMixin {
 
             int slot = packet.slotNum();
             ItemStack clicked = container.getItem(slot);
-            boolean updated = false;
 
             // Updated Layout Navigation Slots
-            if (slot == 45) { EnchantmentCapGUI.changeLeftPage(this.player, -1, container); updated = true; }
-            if (slot == 47) { EnchantmentCapGUI.changeLeftPage(this.player, +1, container); updated = true; }
-            if (slot == 50) { EnchantmentCapGUI.changeRightPage(this.player, -1, container); updated = true; }
-            if (slot == 52) { EnchantmentCapGUI.changeRightPage(this.player, +1, container); updated = true; }
-            if (slot == 53) { EnchantmentCapGUI.changeCategory(this.player, +1, container); updated = true; } // Cycles forward
-
-            if (updated) {
-                chestMenu.sendAllDataToRemote(); // Sync to client without resetting mouse
-                return;
-            }
-
+            if (slot == 45) { EnchantmentCapGUI.changeLeftPage(this.player, -1, container); }
+            else if (slot == 47) { EnchantmentCapGUI.changeLeftPage(this.player, +1, container); }
+            else if (slot == 50) { EnchantmentCapGUI.changeRightPage(this.player, -1, container); }
+            else if (slot == 52) { EnchantmentCapGUI.changeRightPage(this.player, +1, container); }
+            else if (slot == 53) { EnchantmentCapGUI.changeCategory(this.player, +1, container); } 
+            
             // Handle clicks on enchantment items (both active caps and books)
-            if (!clicked.isEmpty() && (clicked.is(Items.ENCHANTED_BOOK) || clicked.has(DataComponents.STORED_ENCHANTMENTS))) {
+            else if (!clicked.isEmpty() && (clicked.is(Items.ENCHANTED_BOOK) || clicked.has(DataComponents.STORED_ENCHANTMENTS))) {
                 var customData = clicked.get(DataComponents.CUSTOM_DATA);
                 if (customData != null) {
                     CompoundTag tag = customData.copyTag();
@@ -62,6 +56,9 @@ public class EnchantmentCapGUIMixin {
                     }
                 }
             }
+
+            // ALWAYS sync to the client at the end to delete ghost items
+            chestMenu.sendAllDataToRemote(); 
             return;
         }
 
@@ -85,6 +82,7 @@ public class EnchantmentCapGUIMixin {
                 this.player.level().getServer().execute(() -> EnchantmentCapGUI.openMainMenu(this.player));
                 return;
             } else {
+                chestMenu.sendAllDataToRemote(); // Delete ghost items on glass panes here too
                 return;
             }
 

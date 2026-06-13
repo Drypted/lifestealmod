@@ -32,8 +32,10 @@ public class RecipeGUIMixin {
             
             int slot = packet.slotNum();
             if (slot == 11) this.player.level().getServer().execute(() -> RecipeGUI.openRecipeEditor(this.player, "heart"));
-            if (slot == 13) this.player.level().getServer().execute(() -> RecipeGUI.openRecipeEditor(this.player, "beacon"));
-            if (slot == 15) this.player.level().getServer().execute(() -> RecipeGUI.openSettingsMenu(this.player));
+            else if (slot == 13) this.player.level().getServer().execute(() -> RecipeGUI.openRecipeEditor(this.player, "beacon"));
+            else if (slot == 15) this.player.level().getServer().execute(() -> RecipeGUI.openSettingsMenu(this.player));
+
+            chestMenu.sendAllDataToRemote(); // Deletes ghost items
             return;
         }
 
@@ -57,8 +59,9 @@ public class RecipeGUIMixin {
             
             if (updated) {
                 RecipeGUI.updateSettingsMenu(container);
-                chestMenu.sendAllDataToRemote();
             }
+
+            chestMenu.sendAllDataToRemote(); // ALWAYS send to clean ghost items
             return;
         }
 
@@ -85,10 +88,10 @@ public class RecipeGUIMixin {
             if (updated) {
                 LifestealConfig.maxHeartsToCraft = currentHearts * 2.0;
                 com.drypted.lifesteal.config.LifestealConfigManager.save(this.player.level().getServer());
-                
                 RecipeGUI.updateMaxHeartsAdjuster(container);
-                chestMenu.sendAllDataToRemote();
             }
+
+            chestMenu.sendAllDataToRemote(); // Ghost item fix
             return;
         }
 
@@ -100,12 +103,11 @@ public class RecipeGUIMixin {
             int[] editableSlots = {10, 11, 12, 19, 20, 21, 28, 29, 30};
             boolean isGrid = Arrays.stream(editableSlots).anyMatch(x -> x == slot);
 
-            if (isGrid) return;
+            if (isGrid) return; // Allow normal dragging here
 
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
-            chestMenu.sendAllDataToRemote();
-
+            
             if (slot == 45) { // SAVE
                 ItemStack[] targetMatrix = editor.getTarget().equals("heart") ? LifestealConfig.heartRecipeMatrix : LifestealConfig.beaconRecipeMatrix;
                 for (int i = 0; i < 9; i++) {
@@ -117,6 +119,8 @@ public class RecipeGUIMixin {
             } else if (slot == 49 || slot == 53) {
                 this.player.level().getServer().execute(() -> RecipeGUI.openMainMenu(this.player));
             }
+
+            chestMenu.sendAllDataToRemote(); // Important for the non-grid slots
         }
     }
 }

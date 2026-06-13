@@ -46,11 +46,13 @@ public class LifestealSettingsGUIMixin {
                 }
             }
             
-            // Refresh GUI in-place
+            // Refresh GUI in-place if an actionable button was clicked
             if (slot >= 10 && slot <= 14) {
                 LifestealSettingsGUI.updateMainSettings(container);
-                chestMenu.sendAllDataToRemote();
             }
+            
+            // ALWAYS sync to clear glass pane ghost items
+            chestMenu.sendAllDataToRemote();
             return;
         }
 
@@ -78,8 +80,10 @@ public class LifestealSettingsGUIMixin {
             // Refresh GUI in-place
             if (updated) {
                 LifestealSettingsGUI.updateMaceLimitAdjuster(container);
-                chestMenu.sendAllDataToRemote();
             }
+
+            // ALWAYS sync to clear ghost items
+            chestMenu.sendAllDataToRemote();
         }
     }
 
