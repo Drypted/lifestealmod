@@ -1,6 +1,8 @@
 ![banner](https://cdn.modrinth.com/data/cached_images/25cea83c8ffef70f24b327049dde254f2ebfc945_0.webp)
 This Lifesteal mod is identical by the Lifesteal SMP. In this mod, if you kill a player, you steal one of their hearts, and if you die, you lose one. Just like the Lifesteal SMP, if you lose all of your hearts, you can get revived.
 
+**NOTE: [Make sure to first configure the recipes `/lifesteal recipe`,`/lifesteal settings` and `/lifesteal enchantment_cap`. As they are not configured by default.]**
+
 **Supports**
 - 26.1.2 FABRIC
 
