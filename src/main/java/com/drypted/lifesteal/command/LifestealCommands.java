@@ -22,6 +22,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Collection;
@@ -36,6 +37,22 @@ public class LifestealCommands {
         });
     }
 
+    private static void removeItems(Inventory inv, ItemStack stackToRemove) {
+        int remaining = stackToRemove.getCount();
+
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack slot = inv.getItem(i);
+
+            if (!ItemStack.isSameItemSameComponents(slot, stackToRemove)) continue;
+
+            int remove = Math.min(slot.getCount(), remaining);
+            slot.shrink(remove);
+            remaining -= remove;
+
+            if (remaining <= 0) break;
+        }
+    }
+
     // --- /withdraw AMOUNT ---
     private static void registerWithdraw(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("withdraw")
@@ -43,28 +60,43 @@ public class LifestealCommands {
                 .executes(context -> {
                     ServerPlayer player = context.getSource().getPlayerOrException();
                     int amountToWithdraw = IntegerArgumentType.getInteger(context, "amount");
-                    
-                    double healthCost = amountToWithdraw * 2.0; 
+
+                    double healthCost = amountToWithdraw * 2.0;
                     double currentMax = HeartManager.getMaxHealth(player);
-                    
+
                     if (currentMax - healthCost < HeartManager.MIN_MAX_HEALTH) {
-                        player.sendOverlayMessage(Component.literal("§cYou cannot withdraw your last heart!"));
+                        player.sendOverlayMessage(
+                            Component.literal("§cYou cannot withdraw your last heart!")
+                        );
                         return 0;
-                    }
-                    
-                    HeartManager.setMaxHealth(player, currentMax - healthCost);
-                    
-                    if (player.getHealth() > player.getMaxHealth()) {
-                        player.setHealth(player.getMaxHealth());
                     }
 
                     ItemStack hearts = ServerItemHelper.createHeart();
                     hearts.setCount(amountToWithdraw);
-                    if (!player.getInventory().add(hearts)) {
-                        player.level().addFreshEntity(new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), hearts));
+
+                    ItemStack test = hearts.copy();
+
+                    if (!player.getInventory().add(test)) {
+                        player.sendOverlayMessage(
+                            Component.literal("§cYour inventory is full.")
+                        );
+                        return 0;
                     }
-                    
-                    player.sendOverlayMessage(Component.literal("§aSuccessfully withdrew " + amountToWithdraw + " hearts."));
+
+                    removeItems(player.getInventory(), hearts);
+
+                    HeartManager.setMaxHealth(player, currentMax - healthCost);
+
+                    if (player.getHealth() > player.getMaxHealth()) {
+                        player.setHealth(player.getMaxHealth());
+                    }
+
+                    player.getInventory().add(hearts);
+
+                    player.sendOverlayMessage(
+                        Component.literal("§aSuccessfully withdrew " + amountToWithdraw + " hearts.")
+                    );
+
                     return 1;
                 })
             )
