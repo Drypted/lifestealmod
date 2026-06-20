@@ -22,6 +22,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.Permissions;
 import net.minecraft.server.players.NameAndId;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.Collection;
@@ -36,6 +37,22 @@ public class LifestealCommands {
         });
     }
 
+    private static void removeItems(Inventory inv, ItemStack stackToRemove) {
+        int remaining = stackToRemove.getCount();
+
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack slot = inv.getItem(i);
+
+            if (!ItemStack.isSameItemSameComponents(slot, stackToRemove)) continue;
+
+            int remove = Math.min(slot.getCount(), remaining);
+            slot.shrink(remove);
+            remaining -= remove;
+
+            if (remaining <= 0) break;
+        }
+    }
+
     // --- /withdraw AMOUNT ---
     private static void registerWithdraw(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("withdraw")
@@ -47,7 +64,6 @@ public class LifestealCommands {
                     double healthCost = amountToWithdraw * 2.0;
                     double currentMax = HeartManager.getMaxHealth(player);
 
-                    // Check health first
                     if (currentMax - healthCost < HeartManager.MIN_MAX_HEALTH) {
                         player.sendOverlayMessage(
                             Component.literal("§cYou cannot withdraw your last heart!")
@@ -55,41 +71,20 @@ public class LifestealCommands {
                         return 0;
                     }
 
-                    // Create the heart stack
                     ItemStack hearts = ServerItemHelper.createHeart();
                     hearts.setCount(amountToWithdraw);
 
-                    // Simulate inventory insertion
-                    ItemStack remaining = hearts.copy();
+                    ItemStack test = hearts.copy();
 
-                    for (int slot = 0; slot < player.getInventory().getContainerSize() && !remaining.isEmpty(); slot++) {
-                        ItemStack existing = player.getInventory().getItem(slot);
-
-                        if (existing.isEmpty()) {
-                            int moved = Math.min(
-                                remaining.getCount(),
-                                remaining.getMaxStackSize()
-                            );
-                            remaining.shrink(moved);
-                        }
-                        else if (ItemStack.isSameItemSameComponents(existing, remaining)) {
-                            int freeSpace = existing.getMaxStackSize() - existing.getCount();
-
-                            if (freeSpace > 0) {
-                                remaining.shrink(Math.min(freeSpace, remaining.getCount()));
-                            }
-                        }
-                    }
-
-                    // Not enough space for all hearts
-                    if (!remaining.isEmpty()) {
+                    if (!player.getInventory().add(test)) {
                         player.sendOverlayMessage(
-                            Component.literal("§cYou don't have enough inventory space.")
+                            Component.literal("§cYour inventory is full.")
                         );
                         return 0;
                     }
 
-                    // All checks passed - perform withdrawal
+                    removeItems(player.getInventory(), hearts);
+
                     HeartManager.setMaxHealth(player, currentMax - healthCost);
 
                     if (player.getHealth() > player.getMaxHealth()) {
