@@ -43,28 +43,65 @@ public class LifestealCommands {
                 .executes(context -> {
                     ServerPlayer player = context.getSource().getPlayerOrException();
                     int amountToWithdraw = IntegerArgumentType.getInteger(context, "amount");
-                    
-                    double healthCost = amountToWithdraw * 2.0; 
+
+                    double healthCost = amountToWithdraw * 2.0;
                     double currentMax = HeartManager.getMaxHealth(player);
-                    
+
+                    // Check health first
                     if (currentMax - healthCost < HeartManager.MIN_MAX_HEALTH) {
-                        player.sendOverlayMessage(Component.literal("§cYou cannot withdraw your last heart!"));
+                        player.sendOverlayMessage(
+                            Component.literal("§cYou cannot withdraw your last heart!")
+                        );
                         return 0;
                     }
-                    
+
+                    // Create the heart stack
+                    ItemStack hearts = ServerItemHelper.createHeart();
+                    hearts.setCount(amountToWithdraw);
+
+                    // Simulate inventory insertion
+                    ItemStack remaining = hearts.copy();
+
+                    for (int slot = 0; slot < player.getInventory().getContainerSize() && !remaining.isEmpty(); slot++) {
+                        ItemStack existing = player.getInventory().getItem(slot);
+
+                        if (existing.isEmpty()) {
+                            int moved = Math.min(
+                                remaining.getCount(),
+                                remaining.getMaxStackSize()
+                            );
+                            remaining.shrink(moved);
+                        }
+                        else if (ItemStack.isSameItemSameComponents(existing, remaining)) {
+                            int freeSpace = existing.getMaxStackSize() - existing.getCount();
+
+                            if (freeSpace > 0) {
+                                remaining.shrink(Math.min(freeSpace, remaining.getCount()));
+                            }
+                        }
+                    }
+
+                    // Not enough space for all hearts
+                    if (!remaining.isEmpty()) {
+                        player.sendOverlayMessage(
+                            Component.literal("§cYou don't have enough inventory space.")
+                        );
+                        return 0;
+                    }
+
+                    // All checks passed - perform withdrawal
                     HeartManager.setMaxHealth(player, currentMax - healthCost);
-                    
+
                     if (player.getHealth() > player.getMaxHealth()) {
                         player.setHealth(player.getMaxHealth());
                     }
 
-                    ItemStack hearts = ServerItemHelper.createHeart();
-                    hearts.setCount(amountToWithdraw);
-                    if (!player.getInventory().add(hearts)) {
-                        player.level().addFreshEntity(new ItemEntity(player.level(), player.getX(), player.getY(), player.getZ(), hearts));
-                    }
-                    
-                    player.sendOverlayMessage(Component.literal("§aSuccessfully withdrew " + amountToWithdraw + " hearts."));
+                    player.getInventory().add(hearts);
+
+                    player.sendOverlayMessage(
+                        Component.literal("§aSuccessfully withdrew " + amountToWithdraw + " hearts.")
+                    );
+
                     return 1;
                 })
             )
