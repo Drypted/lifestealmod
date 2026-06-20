@@ -25,7 +25,7 @@ public class RecipeGUI {
 
     public static void openMainMenu(ServerPlayer player) {
         MainMenuContainer container = new MainMenuContainer();
-        for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
+        for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.STAINED_GLASS_PANE.gray(), " "));
 
         container.setItem(11, createItemWithName(ServerItemHelper.createHeart(), "§cConfigure Heart Recipe"));
         container.setItem(13, createItemWithName(ServerItemHelper.createReviveBeacon(), "§bConfigure Revive Beacon Recipe"));
@@ -40,7 +40,7 @@ public class RecipeGUI {
         EditorContainer container = new EditorContainer(target);
         ItemStack[] currentMatrix = target.equals("heart") ? LifestealConfig.heartRecipeMatrix : LifestealConfig.beaconRecipeMatrix;
 
-        for (int i = 0; i < 54; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
+        for (int i = 0; i < 54; i++) container.setItem(i, createGlass(Items.STAINED_GLASS_PANE.gray(), " "));
 
         int[] gridSlots = {10, 11, 12, 19, 20, 21, 28, 29, 30};
         for (int i = 0; i < 9; i++) {

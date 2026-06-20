@@ -45,7 +45,7 @@ public class LifestealSettingsGUI {
     // ---------------- MAIN MENU ----------------
     public static void openMainMenu(ServerPlayer player) {
         MainMenuContainer container = new MainMenuContainer();
-        fillGlass(container, Items.GRAY_STAINED_GLASS_PANE, " ");
+        fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
 
         container.setItem(10, createIcon(Items.MACE, "§cMace Settings", "Limit mace crafts, enable/disable crafting"));
         container.setItem(12, createIcon(Items.NETHER_STAR, "§cHeart Settings", "Max hearts, craft limit, revive amount"));
@@ -61,12 +61,12 @@ public class LifestealSettingsGUI {
     // ---------------- MACE SETTINGS ----------------
     public static void openMaceSettings(ServerPlayer player) {
         MaceSettingsContainer container = new MaceSettingsContainer();
-        fillGlass(container, Items.GRAY_STAINED_GLASS_PANE, " ");
+        fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
         container.setItem(10, createToggleItem(LifestealConfig.maceCraftingEnabled, "Enable Mace Crafting", "If disabled, maces cannot be crafted"));
         container.setItem(12, createDisplayItem(Items.PAPER, "§eRemaining Mace Crafts", "§a" + LifestealConfig.maceCraftsRemaining));
-        container.setItem(14, createGlass(Items.RED_STAINED_GLASS_PANE, "§c-1"));
+        container.setItem(14, createGlass(Items.STAINED_GLASS_PANE.red(), "§c-1"));
         container.setItem(15, createGlass(Items.REDSTONE_BLOCK, "§c-5"));
-        container.setItem(16, createGlass(Items.LIME_STAINED_GLASS_PANE, "§a+1"));
+        container.setItem(16, createGlass(Items.STAINED_GLASS_PANE.lime(), "§a+1"));
         container.setItem(17, createGlass(Items.EMERALD_BLOCK, "§a+5"));
         container.setItem(22, createToggleItem(LifestealConfig.broadcastMaceCraft, "Broadcast Mace Craft", "Announce to all players when mace is crafted"));
         container.setItem(26, createGlass(Items.ARROW, "§eBack"));
@@ -79,7 +79,7 @@ public class LifestealSettingsGUI {
     // ---------------- HEART SETTINGS ----------------
     public static void openHeartSettings(ServerPlayer player) {
         HeartSettingsContainer container = new HeartSettingsContainer();
-        fillGlass(container, Items.GRAY_STAINED_GLASS_PANE, " ");
+        fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
         container.setItem(10, createToggleItem(LifestealConfig.heartRecipeEnabled, "Heart Recipe Enabled", "Allow crafting of heart items"));
         container.setItem(11, createAdjustableItem("maxHeartsToCraft", "Max hearts to craft", "Players with ≥ this cannot craft hearts", LifestealConfig.maxHeartsToCraft / 2.0));
         container.setItem(12, createAdjustableItem("maxHearts", "Absolute max hearts", "Hard cap for any player", LifestealConfig.maxHearts / 2.0));
@@ -97,7 +97,7 @@ public class LifestealSettingsGUI {
     // ---------------- BEACON SETTINGS ----------------
     public static void openBeaconSettings(ServerPlayer player) {
         BeaconSettingsContainer container = new BeaconSettingsContainer();
-        fillGlass(container, Items.GRAY_STAINED_GLASS_PANE, " ");
+        fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
         container.setItem(13, createToggleItem(LifestealConfig.beaconRecipeEnabled, "Beacon Recipe Enabled", "Allow crafting of revive beacons"));
         container.setItem(26, createGlass(Items.ARROW, "§eBack"));
         player.openMenu(new SimpleMenuProvider(
@@ -109,7 +109,7 @@ public class LifestealSettingsGUI {
     // ---------------- MISC SETTINGS ----------------
     public static void openMiscSettings(ServerPlayer player) {
         MiscSettingsContainer container = new MiscSettingsContainer();
-        fillGlass(container, Items.GRAY_STAINED_GLASS_PANE, " ");
+        fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
         container.setItem(10, createToggleItem(LifestealConfig.totemDisabled, "Disable Totem of Undying", "Totems will not revive players"));
         container.setItem(11, createToggleItem(LifestealConfig.endCrystalDamageDisabled, "Disable End Crystal damage", "Crystals deal no damage"));
         container.setItem(12, createToggleItem(LifestealConfig.respawnAnchorNetherOnly, "Respawn Anchor only in Nether", "Cannot be charged in Overworld/End"));
@@ -125,12 +125,12 @@ public class LifestealSettingsGUI {
     // ---------------- DOUBLE ADJUSTER (unchanged) ----------------
     public static void openDoubleAdjuster(ServerPlayer player, String fieldName, double minValue, double maxValue) {
         DoubleAdjusterContainer container = new DoubleAdjusterContainer(fieldName);
-        fillGlass(container, Items.GRAY_STAINED_GLASS_PANE, " ");
+        fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
         double current = getCurrentFieldValueStatic(fieldName);
         container.setItem(10, createGlass(Items.REDSTONE_BLOCK, "§c-1 Heart (-2 HP)"));
-        container.setItem(11, createGlass(Items.RED_STAINED_GLASS_PANE, "§e-0.5 Heart (-1 HP)"));
+        container.setItem(11, createGlass(Items.STAINED_GLASS_PANE.red(), "§e-0.5 Heart (-1 HP)"));
         container.setItem(13, createGlass(Items.PAPER, "§eCurrent " + fieldName + ": §a" + current + " hearts"));
-        container.setItem(15, createGlass(Items.LIME_STAINED_GLASS_PANE, "§e+0.5 Heart (+1 HP)"));
+        container.setItem(15, createGlass(Items.STAINED_GLASS_PANE.lime(), "§e+0.5 Heart (+1 HP)"));
         container.setItem(16, createGlass(Items.EMERALD_BLOCK, "§a+1 Heart (+2 HP)"));
         container.setItem(22, createGlass(Items.ARROW, "§eReturn to Settings"));
         player.openMenu(new SimpleMenuProvider(
@@ -170,7 +170,7 @@ public class LifestealSettingsGUI {
         return stack;
     }
     private static ItemStack createToggleItem(boolean enabled, String name, String description) {
-        Item icon = enabled ? Items.LIME_CONCRETE : Items.RED_CONCRETE;
+        Item icon = enabled ? Items.CONCRETE.lime() : Items.CONCRETE.red();
         String status = enabled ? "§aENABLED" : "§cDISABLED";
         ItemStack stack = new ItemStack(icon);
         stack.set(DataComponents.CUSTOM_NAME, Component.literal("§6" + name + " §7[" + status + "]").withStyle(s -> s.withItalic(false)));

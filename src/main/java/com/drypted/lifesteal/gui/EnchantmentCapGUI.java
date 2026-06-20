@@ -93,8 +93,8 @@ public class EnchantmentCapGUI {
         PageState state = PAGE_STATES.computeIfAbsent(player, k -> new PageState());
 
         // Fill background and divider
-        for (int i = 0; i < 54; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
-        for (int slot : DIVIDER_SLOTS) container.setItem(slot, createGlass(Items.BLACK_STAINED_GLASS_PANE, " "));
+        for (int i = 0; i < 54; i++) container.setItem(i, createGlass(Items.STAINED_GLASS_PANE.gray(), " "));
+        for (int slot : DIVIDER_SLOTS) container.setItem(slot, createGlass(Items.STAINED_GLASS_PANE.black(), " "));
 
         // Left panel: active caps (20 slots)
         List<Map.Entry<String, Integer>> capsList = new ArrayList<>(LifestealConfigManager.getInstance().enchantmentCaps.entrySet());
@@ -221,11 +221,11 @@ public class EnchantmentCapGUI {
     // openAdjuster, getMaxPossibleLevel, getEnchantmentHolder, createGlass remain the exact same below...
     public static void openAdjuster(ServerPlayer player, String enchantmentId, int currentCap, int maxPossible) {
         AdjusterContainer container = new AdjusterContainer(enchantmentId, currentCap, maxPossible);
-        for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
+        for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.STAINED_GLASS_PANE.gray(), " "));
 
-        container.setItem(11, createGlass(Items.RED_STAINED_GLASS_PANE, "§c-1"));
+        container.setItem(11, createGlass(Items.STAINED_GLASS_PANE.red(), "§c-1"));
         container.setItem(13, createGlass(Items.PAPER, "§eCurrent cap: §a" + currentCap + " / " + maxPossible));
-        container.setItem(15, createGlass(Items.LIME_STAINED_GLASS_PANE, "§a+1"));
+        container.setItem(15, createGlass(Items.STAINED_GLASS_PANE.lime(), "§a+1"));
         container.setItem(22, createGlass(Items.BARRIER, "§cRemove Cap"));
         container.setItem(26, createGlass(Items.ARROW, "§eBack"));
 
