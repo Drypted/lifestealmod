@@ -23,7 +23,6 @@ public class ResultSlotMixin {
     private void lifesteal$onTake(Player player, ItemStack carried, CallbackInfo ci) {
         if (!carried.is(Items.MACE)) return;
 
-        // Block if disabled OR limit reached
         if (!LifestealConfig.maceCraftingEnabled || LifestealConfig.maceCraftsRemaining <= 0) {
             
             String message = !LifestealConfig.maceCraftingEnabled ? 
@@ -32,7 +31,6 @@ public class ResultSlotMixin {
             player.sendSystemMessage(Component.literal(LifestealConfig.messagePrefix + message));
             ci.cancel();
 
-            // Clear the result slot (index 0) to avoid ghost item
             if (player.containerMenu instanceof CraftingMenu menu) {
                 menu.slots.get(0).set(ItemStack.EMPTY);
                 menu.broadcastChanges();

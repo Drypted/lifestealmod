@@ -20,9 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(RespawnAnchorBlock.class)
 public class RespawnAnchorMixin {
 
-    /**
-     * Prevents charging the anchor (using glowstone) in non‑Nether dimensions.
-     */
     @Inject(method = "useItemOn", at = @At("HEAD"), cancellable = true)
     private void restrictCharging(ItemStack itemStack, BlockState state, Level level, BlockPos pos,
                                   Player player, InteractionHand hand, BlockHitResult hitResult,
@@ -36,9 +33,6 @@ public class RespawnAnchorMixin {
         }
     }
 
-    /**
-     * Prevents setting the spawn point in non‑Nether dimensions.
-     */
     @Inject(method = "useWithoutItem", at = @At("HEAD"), cancellable = true)
     private void restrictSpawnSetting(BlockState state, Level level, BlockPos pos, Player player,
                                       BlockHitResult hitResult, CallbackInfoReturnable<InteractionResult> cir) {
@@ -51,10 +45,6 @@ public class RespawnAnchorMixin {
         }
     }
 
-    /**
-     * Optional: Also override canSetSpawn for safety (e.g., if the anchor explodes when trying to charge).
-     * This method is static and exists in your decompiled code.
-     */
     @Inject(method = "canSetSpawn", at = @At("HEAD"), cancellable = true)
     private static void restrictSpawnCheck(ServerLevel level, BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
         if (!LifestealConfig.respawnAnchorNetherOnly) return;

@@ -26,13 +26,11 @@ public class ItemUseMixin {
 
         ItemStack heldItem = user.getItemInHand(hand);
 
-        // --- HEART LOGIC ---
         if (ServerItemHelper.isAuthenticHeart(heldItem)) {
             double currentHearts = HeartManager.getMaxHealth(serverPlayer) / 2.0;
             double absoluteMaxHearts = LifestealConfig.maxHearts / 2.0;
 
             if (currentHearts < absoluteMaxHearts) {
-                // Can consume heart (adds 1 heart)
                 HeartManager.setMaxHealth(serverPlayer, (currentHearts + 1) * 2.0);
                 if (!serverPlayer.getAbilities().instabuild) {
                     heldItem.shrink(1);
@@ -46,7 +44,6 @@ public class ItemUseMixin {
             return;
         }
 
-        // --- BEACON LOGIC (unchanged) ---
         if (ServerItemHelper.isAuthenticBeacon(heldItem)) {
             ReviveGUI.open(serverPlayer);
             cir.setReturnValue(InteractionResult.SUCCESS_SERVER);

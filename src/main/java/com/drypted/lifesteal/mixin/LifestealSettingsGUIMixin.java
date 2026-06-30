@@ -24,7 +24,6 @@ public class LifestealSettingsGUIMixin {
     private void onSettingsGuiClick(ServerboundContainerClickPacket packet, CallbackInfo ci) {
         if (!(this.player.containerMenu instanceof ChestMenu chestMenu)) return;
 
-        // ---------- MAIN MENU ----------
         if (chestMenu.getContainer() instanceof LifestealSettingsGUI.MainMenuContainer) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
@@ -38,13 +37,11 @@ public class LifestealSettingsGUIMixin {
             } else if (slot == 16) {
                 LifestealSettingsGUI.openMiscSettings(this.player);
             } else {
-                // Click on a glass pane – just refresh to avoid any client desync
                 chestMenu.sendAllDataToRemote();
             }
             return;
         }
 
-        // ---------- MACE SETTINGS ----------
         if (chestMenu.getContainer() instanceof LifestealSettingsGUI.MaceSettingsContainer) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
@@ -69,16 +66,13 @@ public class LifestealSettingsGUIMixin {
                 toggleValue("broadcastMaceCraft");
                 LifestealSettingsGUI.openMaceSettings(this.player);
             } else if (slot == 26) {
-                // Back to main menu – do NOT reopen mace settings
                 LifestealSettingsGUI.openMainMenu(this.player);
             } else {
-                // Click on glass pane – just refresh the current GUI
                 LifestealSettingsGUI.openMaceSettings(this.player);
             }
             return;
         }
 
-        // ---------- HEART SETTINGS ----------
         if (chestMenu.getContainer() instanceof LifestealSettingsGUI.HeartSettingsContainer) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
@@ -110,7 +104,6 @@ public class LifestealSettingsGUIMixin {
             return;
         }
 
-        // ---------- BEACON SETTINGS ----------
         if (chestMenu.getContainer() instanceof LifestealSettingsGUI.BeaconSettingsContainer) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
@@ -127,7 +120,6 @@ public class LifestealSettingsGUIMixin {
             return;
         }
 
-        // ---------- MISC SETTINGS ----------
         if (chestMenu.getContainer() instanceof LifestealSettingsGUI.MiscSettingsContainer) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
@@ -156,7 +148,6 @@ public class LifestealSettingsGUIMixin {
             return;
         }
 
-        // ---------- DOUBLE ADJUSTER ----------
         if (chestMenu.getContainer() instanceof LifestealSettingsGUI.DoubleAdjusterContainer adjContainer) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
@@ -175,7 +166,6 @@ public class LifestealSettingsGUIMixin {
                 LifestealSettingsGUI.openHeartSettings(this.player);
                 return;
             } else {
-                // Click on glass – refresh adjuster
                 LifestealSettingsGUI.openDoubleAdjuster(this.player, field, min, max);
                 return;
             }
@@ -189,7 +179,6 @@ public class LifestealSettingsGUIMixin {
         }
     }
 
-    // ---------- HELPER METHODS ----------
     private void toggleValue(String fieldName) {
         try {
             java.lang.reflect.Field field = LifestealConfig.class.getField(fieldName);

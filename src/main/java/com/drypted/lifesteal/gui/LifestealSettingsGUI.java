@@ -17,7 +17,6 @@ import java.util.List;
 
 public class LifestealSettingsGUI {
 
-    // ---------------- CATEGORY CONTAINERS ----------------
     public static class MainMenuContainer extends SimpleContainer {
         public MainMenuContainer() { super(27); }
     }
@@ -42,7 +41,6 @@ public class LifestealSettingsGUI {
         public String getTargetField() { return targetField; }
     }
 
-    // ---------------- MAIN MENU ----------------
     public static void openMainMenu(ServerPlayer player) {
         MainMenuContainer container = new MainMenuContainer();
         fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
@@ -58,7 +56,6 @@ public class LifestealSettingsGUI {
         ));
     }
 
-    // ---------------- MACE SETTINGS ----------------
     public static void openMaceSettings(ServerPlayer player) {
         MaceSettingsContainer container = new MaceSettingsContainer();
         fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
@@ -76,7 +73,6 @@ public class LifestealSettingsGUI {
         ));
     }
 
-    // ---------------- HEART SETTINGS ----------------
     public static void openHeartSettings(ServerPlayer player) {
         HeartSettingsContainer container = new HeartSettingsContainer();
         fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
@@ -94,7 +90,6 @@ public class LifestealSettingsGUI {
         ));
     }
 
-    // ---------------- BEACON SETTINGS ----------------
     public static void openBeaconSettings(ServerPlayer player) {
         BeaconSettingsContainer container = new BeaconSettingsContainer();
         fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
@@ -106,7 +101,6 @@ public class LifestealSettingsGUI {
         ));
     }
 
-    // ---------------- MISC SETTINGS ----------------
     public static void openMiscSettings(ServerPlayer player) {
         MiscSettingsContainer container = new MiscSettingsContainer();
         fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
@@ -122,7 +116,6 @@ public class LifestealSettingsGUI {
         ));
     }
 
-    // ---------------- DOUBLE ADJUSTER (unchanged) ----------------
     public static void openDoubleAdjuster(ServerPlayer player, String fieldName, double minValue, double maxValue) {
         DoubleAdjusterContainer container = new DoubleAdjusterContainer(fieldName);
         fillGlass(container, Items.STAINED_GLASS_PANE.gray(), " ");
@@ -153,7 +146,6 @@ public class LifestealSettingsGUI {
         }
     }
 
-    // ---------------- HELPER METHODS ----------------
     private static void fillGlass(SimpleContainer container, Item glassType, String name) {
         for (int i = 0; i < container.getContainerSize(); i++)
             container.setItem(i, createGlass(glassType, name));

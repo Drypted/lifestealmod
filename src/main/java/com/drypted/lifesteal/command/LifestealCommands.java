@@ -132,7 +132,6 @@ public class LifestealCommands {
         );
     }
 
-    // --- /lifesteal CONTROLLER BRANCH ---
     private static void registerLifestealBase(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("lifesteal")
             .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_OWNER)) // Operator only
@@ -258,7 +257,7 @@ public class LifestealCommands {
                 })
             )
 
-            // /lifesteal settings (GUI and direct commands)
+            // /lifesteal settings
             .then(Commands.literal("settings")
                 .executes(context -> {
                     ServerPlayer player = context.getSource().getPlayerOrException();

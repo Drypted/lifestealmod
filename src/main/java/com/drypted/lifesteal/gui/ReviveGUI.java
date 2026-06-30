@@ -30,14 +30,12 @@ public class ReviveGUI {
 
         int slot = 0;
 
-        // 1. Gather Banned Players
         for (UserBanListEntry entry : server.getPlayerList().getBans().getEntries()) {
             if (slot >= 54) break;
             GameProfile profile = new GameProfile(entry.getUser().id(), entry.getUser().name());
             container.setItem(slot++, createHead(profile));
         }
 
-        // 2. Gather Online Spectator Players (If the config doesn't use bans)
         for (ServerPlayer p : server.getPlayerList().getPlayers()) {
             if (slot >= 54) break;
             if (p.gameMode.getGameModeForPlayer() == GameType.SPECTATOR && !server.getPlayerList().getBans().isBanned(p.nameAndId())) {

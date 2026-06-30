@@ -26,21 +26,19 @@ public class ReviveGUIMixin {
     @Inject(method = "handleContainerClick", at = @At("HEAD"), cancellable = true)
     private void onContainerClick(ServerboundContainerClickPacket packet, CallbackInfo ci) {
         if (this.player.containerMenu instanceof ChestMenu chestMenu) {
-            
-            // Validate that this is explicitly the Revive Container
             if (chestMenu.getContainer() instanceof ReviveGUI.ReviveContainer) {
-                ci.cancel(); // Prevent taking items out of the menu
-                chestMenu.setCarried(ItemStack.EMPTY); // Clear any predicted cursor items
+                ci.cancel(); // prevent taking items out of the menu
+                chestMenu.setCarried(ItemStack.EMPTY);
 
                 int slot = packet.slotNum();
                 if (slot < 0 || slot >= chestMenu.getContainer().getContainerSize()) {
-                    chestMenu.sendAllDataToRemote(); // Sync to prevent ghost items on out-of-bounds clicks
+                    chestMenu.sendAllDataToRemote(); // sync to prevent ghost blocks
                     return;
                 }
 
                 ItemStack clickedItem = chestMenu.getContainer().getItem(slot);
                 if (clickedItem.isEmpty()) {
-                    chestMenu.sendAllDataToRemote(); // Sync to prevent ghost items on empty slots
+                    chestMenu.sendAllDataToRemote(); // sync to prevent ghost item
                     return;
                 }
 
@@ -53,7 +51,6 @@ public class ReviveGUIMixin {
                     if (success) {
                         this.player.sendOverlayMessage(Component.literal("§aSuccessfully revived " + targetProfile.name() + "!"));
                         
-                        // Safely consume the Revive Beacon item used to trigger the GUI
                         ItemStack mainHand = this.player.getMainHandItem();
                         if (ServerItemHelper.isAuthenticBeacon(mainHand)) {
                             mainHand.shrink(1);
@@ -65,13 +62,13 @@ public class ReviveGUIMixin {
                         }
                         
                         this.player.closeContainer();
-                        return; // Menu is closed, no need to sync data to the client
+                        return;
                     } else {
                         this.player.sendOverlayMessage(Component.literal("§cCould not revive " + targetProfile.name() + "."));
                     }
                 }
                 
-                // If we reach this point (failed revive or invalid profile item clicked), sync the client!
+                // sync if failed
                 chestMenu.sendAllDataToRemote();
             }
         }

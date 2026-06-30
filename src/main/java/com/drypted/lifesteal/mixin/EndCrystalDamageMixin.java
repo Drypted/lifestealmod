@@ -16,24 +16,17 @@ import org.spongepowered.asm.mixin.Overwrite;
 @Mixin(EndCrystal.class)
 public abstract class EndCrystalDamageMixin {
 
-    /**
-     * Replaces the default hurtServer logic.
-     * The crystal still breaks, but the explosion is skipped if config disables it.
-     */
     @Overwrite
     public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
         EndCrystal crystal = (EndCrystal) (Object) this;
         Entity entity = crystal;
         
-        // Invulnerability checks - use public/accessible methods instead
         if (entity.isRemoved() || entity.isInvulnerable() && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) return false;
         if (source.getEntity() instanceof EnderDragon) return false;
 
         if (!entity.isRemoved()) {
             entity.remove(Entity.RemovalReason.KILLED);
 
-            // Only create an explosion if the source is NOT already an explosion,
-            // and the config allows it.
             if (!source.is(DamageTypeTags.IS_EXPLOSION) && !LifestealConfig.endCrystalDamageDisabled) {
                 DamageSource damageSource = source.getEntity() != null
                         ? entity.damageSources().explosion(entity, source.getEntity())
@@ -52,7 +45,6 @@ public abstract class EndCrystalDamageMixin {
                 );
             }
 
-            // Call onDestroyedBy logic directly
             EnderDragonFight fight = level.getDragonFight();
             if (fight != null) {
                 fight.onCrystalDestroyed(crystal, source);

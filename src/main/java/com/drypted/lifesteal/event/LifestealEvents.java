@@ -28,7 +28,6 @@ public class LifestealEvents {
             HeartManager.setMaxHealth(serverKiller, killerHealth + HeartManager.HEART_STEAL_AMOUNT);
             serverKiller.heal((float) HeartManager.HEART_STEAL_AMOUNT);
         } else {
-            // Killer is at max max health, drop item on ground
             HeartDropHandler.tryDropHeart(serverVictim, serverKiller);
         }
     }
@@ -40,23 +39,17 @@ public class LifestealEvents {
 
         ServerPlayerEvents.ALLOW_DEATH.register((player, damageSource, damageAmount) -> {
             if (LifestealConfigManager.getInstance().totemDisabled) {
-                // Send a warning to the player
                 player.sendSystemMessage(Component.literal(LifestealConfig.messagePrefix + "§cTotem of Undying is disabled on this server!"));
-                // Do NOT allow the totem to prevent death
-                return true; // 'true' allows death to proceed
+                return true;
             }
-            return true; // Allow death if totem is disabled
+            return true;
         });
         
-        // RESPAWN
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-            // Data should have been copied via COPY_FROM; just reapply attribute
             HeartManager.updateHealthAttribute(newPlayer);
-            // Explicitly set health to max health on respawn
             newPlayer.setHealth(newPlayer.getMaxHealth());
         });
 
-        // COPY_FROM (critical for persistence)
         ServerPlayerEvents.COPY_FROM.register((oldPlayer, newPlayer, alive) -> {
             Double oldHealth = oldPlayer.getAttached(Lifesteal.LIFESTEAL_MAX_HEALTH);
             if (oldHealth != null) {
@@ -65,7 +58,6 @@ public class LifestealEvents {
             HeartManager.updateHealthAttribute(newPlayer);
         });
 
-        // WORLD CHANGE (dimension travel)
         ServerEntityLevelChangeEvents.AFTER_PLAYER_CHANGE_LEVEL.register((player, origin, destination) -> {
             HeartManager.updateHealthAttribute(player);
         });
@@ -76,27 +68,21 @@ public class LifestealEvents {
             boolean killedByPlayer = source.getEntity() instanceof ServerPlayer;
             ServerPlayer serverKiller = killedByPlayer ? (ServerPlayer) source.getEntity() : null;
 
-            // 1. Check if they should lose a heart
             if (killedByPlayer || LifestealConfig.loseHeartsByNaturalCauses) {
                 double currentHealth = HeartManager.getMaxHealth(serverVictim);
                 double newHealth = currentHealth - HeartManager.HEART_STEAL_AMOUNT;
                 
-                // 2. ELIMINATION CHECK (Evaluated on raw math before clamping occurs)
                 if (newHealth <= 0.0) {
-                    // Force their maximum health down to the baseline limit for safety, then execute elimination
                     HeartManager.setMaxHealth(serverVictim, HeartManager.MIN_MAX_HEALTH);
                     
-                    // Reward the killer if applicable
                     if (serverKiller != null && serverVictim != serverKiller) {
                         handleKillerReward(serverVictim, serverKiller);
                     }
                     
                     eliminatePlayer(serverVictim);
                 } else {
-                    // Standard non-fatal heart loss transaction
                     HeartManager.setMaxHealth(serverVictim, newHealth);
                     
-                    // Reward the killer if applicable
                     if (serverKiller != null && serverVictim != serverKiller) {
                         handleKillerReward(serverVictim, serverKiller);
                     }
@@ -111,7 +97,6 @@ public class LifestealEvents {
             player.level().getServer().getPlayerList().broadcastSystemMessage(msg, false);
         }
         if (LifestealConfig.banOnZeroHearts) {
-            // Option A: Permanent Ban
             GameProfile profile = player.getGameProfile();
             NameAndId user = new NameAndId(profile.id(), profile.name());
             UserBanListEntry banEntry = new UserBanListEntry(
@@ -124,7 +109,6 @@ public class LifestealEvents {
             player.level().getServer().getPlayerList().getBans().add(banEntry);
             player.connection.disconnect(Component.literal("§cYou ran out of hearts and have been eliminated!"));
         } else {
-            // Option B: Spectator Mode
             player.setGameMode(GameType.SPECTATOR);
             player.sendOverlayMessage(Component.literal("§cYou ran out of hearts! You are now a spectator until revived."));
         }
