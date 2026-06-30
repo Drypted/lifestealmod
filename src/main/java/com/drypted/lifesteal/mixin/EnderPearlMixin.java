@@ -24,9 +24,7 @@ public class EnderPearlMixin {
         if (!world.isClientSide() &&
             LifestealConfigManager.getInstance().enderPearlDisabled) {
             user.sendOverlayMessage(Component.literal("§cEnder Pearls are disabled on this server!"));
-            // Prevent any action on server
             cir.setReturnValue(InteractionResult.FAIL);
-            // (Optional) add a short cooldown to avoid spamming
             user.getCooldowns().addCooldown((ItemStack)(Object)this, 20);
         }
     }

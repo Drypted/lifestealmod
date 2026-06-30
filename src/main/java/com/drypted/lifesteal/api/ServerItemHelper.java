@@ -8,14 +8,10 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 
 public class ServerItemHelper {
-
-    // --- CREATE ITEMS ---
-    
     public static ItemStack createHeart() {
         ItemStack heart = new ItemStack(Items.NETHER_STAR);
         heart.set(DataComponents.CUSTOM_NAME, Component.literal("§cHeart").withStyle(style -> style.withItalic(false)));
         
-        // Inject a secure, hidden tag that cannot be forged in an anvil
         CompoundTag tag = new CompoundTag();
         tag.putBoolean("lifesteal_heart", true);
         heart.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
@@ -33,8 +29,6 @@ public class ServerItemHelper {
         
         return beacon;
     }
-
-    // --- VERIFY ITEMS ---
 
     public static boolean isAuthenticHeart(ItemStack stack) {
         if (!stack.is(Items.NETHER_STAR)) return false;

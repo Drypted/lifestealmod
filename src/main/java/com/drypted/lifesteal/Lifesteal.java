@@ -3,6 +3,7 @@ package com.drypted.lifesteal;
 import com.drypted.lifesteal.command.LifestealCommands;
 import com.drypted.lifesteal.config.LifestealConfigManager;
 import com.drypted.lifesteal.event.LifestealEvents;
+import com.drypted.lifesteal.recipe.ModRecipes;
 import com.mojang.serialization.Codec;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
@@ -25,6 +26,7 @@ public class Lifesteal implements ModInitializer {
     public void onInitialize() {
         LifestealEvents.register();
         LifestealCommands.register();
+        ModRecipes.register();
         
 
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {

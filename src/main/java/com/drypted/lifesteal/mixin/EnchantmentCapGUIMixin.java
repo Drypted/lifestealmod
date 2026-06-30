@@ -33,14 +33,12 @@ public class EnchantmentCapGUIMixin {
             int slot = packet.slotNum();
             ItemStack clicked = container.getItem(slot);
 
-            // Updated Layout Navigation Slots
             if (slot == 45) { EnchantmentCapGUI.changeLeftPage(this.player, -1, container); }
             else if (slot == 47) { EnchantmentCapGUI.changeLeftPage(this.player, +1, container); }
             else if (slot == 50) { EnchantmentCapGUI.changeRightPage(this.player, -1, container); }
             else if (slot == 52) { EnchantmentCapGUI.changeRightPage(this.player, +1, container); }
             else if (slot == 53) { EnchantmentCapGUI.changeCategory(this.player, +1, container); } 
             
-            // Handle clicks on enchantment items (both active caps and books)
             else if (!clicked.isEmpty() && (clicked.is(Items.ENCHANTED_BOOK) || clicked.has(DataComponents.STORED_ENCHANTMENTS))) {
                 var customData = clicked.get(DataComponents.CUSTOM_DATA);
                 if (customData != null) {
@@ -58,12 +56,10 @@ public class EnchantmentCapGUIMixin {
                 }
             }
 
-            // ALWAYS sync to the client at the end to delete ghost items
             chestMenu.sendAllDataToRemote(); 
             return;
         }
 
-        // Adjuster GUI (unchanged)
         if (chestMenu.getContainer() instanceof EnchantmentCapGUI.AdjusterContainer adjuster) {
             ci.cancel();
             chestMenu.setCarried(ItemStack.EMPTY);
@@ -83,7 +79,7 @@ public class EnchantmentCapGUIMixin {
                 this.player.level().getServer().execute(() -> EnchantmentCapGUI.openMainMenu(this.player));
                 return;
             } else {
-                chestMenu.sendAllDataToRemote(); // Delete ghost items on glass panes here too
+                chestMenu.sendAllDataToRemote();
                 return;
             }
 

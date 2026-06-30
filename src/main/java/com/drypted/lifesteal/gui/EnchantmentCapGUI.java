@@ -28,7 +28,6 @@ public class EnchantmentCapGUI {
 
     private static final Map<ServerPlayer, PageState> PAGE_STATES = new ConcurrentHashMap<>();
 
-    // Map 9x6 layout to side-by-side
     private static final int[] LEFT_SLOTS = {0,1,2,3, 9,10,11,12, 18,19,20,21, 27,28,29,30, 36,37,38,39};
     private static final int[] RIGHT_SLOTS = {5,6,7,8, 14,15,16,17, 23,24,25,26, 32,33,34,35, 41,42,43,44};
     private static final int[] DIVIDER_SLOTS = {4, 13, 22, 31, 40, 49};
@@ -81,22 +80,19 @@ public class EnchantmentCapGUI {
 
     public static void openMainMenu(ServerPlayer player) {
         CapListContainer container = new CapListContainer();
-        updateMainMenu(player, container); // Populate the container
+        updateMainMenu(player, container);
         player.openMenu(new SimpleMenuProvider(
             (id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x6, id, inv, container, 6),
             Component.literal("Enchantment Caps")
         ));
     }
 
-    // New In-Place Update Method
     public static void updateMainMenu(ServerPlayer player, CapListContainer container) {
         PageState state = PAGE_STATES.computeIfAbsent(player, k -> new PageState());
 
-        // Fill background and divider
         for (int i = 0; i < 54; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
         for (int slot : DIVIDER_SLOTS) container.setItem(slot, createGlass(Items.BLACK_STAINED_GLASS_PANE, " "));
 
-        // Left panel: active caps (20 slots)
         List<Map.Entry<String, Integer>> capsList = new ArrayList<>(LifestealConfigManager.getInstance().enchantmentCaps.entrySet());
         int capsPerPage = LEFT_SLOTS.length;
         int leftTotalPages = Math.max(1, (capsList.size() + capsPerPage - 1) / capsPerPage);
@@ -138,7 +134,6 @@ public class EnchantmentCapGUI {
         container.setItem(46, createGlass(Items.PAPER, "§7Page " + (state.leftPage + 1) + "/" + leftTotalPages));
         container.setItem(47, createGlass(Items.ARROW, "§eNext Caps »"));
 
-        // Right panel: enchantments by category (20 slots)
         Registry<Enchantment> registry = player.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         Category currentCat = CATEGORIES.get(state.rightCategory);
         List<Holder.Reference<Enchantment>> catEnchants = getEnchantmentsForCategory(registry, currentCat);
@@ -195,7 +190,7 @@ public class EnchantmentCapGUI {
         List<Map.Entry<String, Integer>> capsList = new ArrayList<>(LifestealConfigManager.getInstance().enchantmentCaps.entrySet());
         int totalPages = Math.max(1, (capsList.size() + LEFT_SLOTS.length - 1) / LEFT_SLOTS.length);
         state.leftPage = Math.max(0, Math.min(totalPages - 1, state.leftPage + delta));
-        updateMainMenu(player, container); // Update in-place
+        updateMainMenu(player, container);
     }
 
     public static void changeRightPage(ServerPlayer player, int delta, CapListContainer container) {
@@ -205,7 +200,7 @@ public class EnchantmentCapGUI {
         List<Holder.Reference<Enchantment>> catEnchants = getEnchantmentsForCategory(registry, currentCat);
         int totalPages = Math.max(1, (catEnchants.size() + RIGHT_SLOTS.length - 1) / RIGHT_SLOTS.length);
         state.rightPage = Math.max(0, Math.min(totalPages - 1, state.rightPage + delta));
-        updateMainMenu(player, container); // Update in-place
+        updateMainMenu(player, container);
     }
 
     public static void changeCategory(ServerPlayer player, int delta, CapListContainer container) {
@@ -215,10 +210,9 @@ public class EnchantmentCapGUI {
         if (newCat >= CATEGORIES.size()) newCat = 0;
         state.rightCategory = newCat;
         state.rightPage = 0;
-        updateMainMenu(player, container); // Update in-place
+        updateMainMenu(player, container);
     }
 
-    // openAdjuster, getMaxPossibleLevel, getEnchantmentHolder, createGlass remain the exact same below...
     public static void openAdjuster(ServerPlayer player, String enchantmentId, int currentCap, int maxPossible) {
         AdjusterContainer container = new AdjusterContainer(enchantmentId, currentCap, maxPossible);
         for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.GRAY_STAINED_GLASS_PANE, " "));
