@@ -16,7 +16,9 @@
 		"EnderPearlMixin",
 		"ResultSlotMixin",
 		"TotemDisableMixin",
-		"CraftingMenuMixin"
+		"CraftingMenuMixin",
+		"GuiInventoryGuardMixin",
+		"PlayerActionGuardMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

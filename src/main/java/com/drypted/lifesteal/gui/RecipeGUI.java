@@ -28,9 +28,9 @@ public class RecipeGUI {
     public static final int DISCARD_SLOT = 53;
     public static final int CONTAINER_SIZE = 54;
 
-    public static class MainMenuContainer extends SimpleContainer { public MainMenuContainer() { super(27); } }
+    public static class MainMenuContainer extends SimpleContainer implements GuardedGuiContainer { public MainMenuContainer() { super(27); } }
 
-    public static class EditorContainer extends SimpleContainer {
+    public static class EditorContainer extends SimpleContainer implements GuardedGuiContainer {
         private final String target;
         // The ingredient currently "picked" by the admin. Never a real inventory item — always a
         // count-1 ghost copy that lives only in this transient container, so it can never be lost.

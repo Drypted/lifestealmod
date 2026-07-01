@@ -17,22 +17,22 @@ import java.util.List;
 
 public class LifestealSettingsGUI {
 
-    public static class MainMenuContainer extends SimpleContainer {
+    public static class MainMenuContainer extends SimpleContainer implements GuardedGuiContainer {
         public MainMenuContainer() { super(27); }
     }
-    public static class MaceSettingsContainer extends SimpleContainer {
+    public static class MaceSettingsContainer extends SimpleContainer implements GuardedGuiContainer {
         public MaceSettingsContainer() { super(27); }
     }
-    public static class HeartSettingsContainer extends SimpleContainer {
+    public static class HeartSettingsContainer extends SimpleContainer implements GuardedGuiContainer {
         public HeartSettingsContainer() { super(27); }
     }
-    public static class BeaconSettingsContainer extends SimpleContainer {
+    public static class BeaconSettingsContainer extends SimpleContainer implements GuardedGuiContainer {
         public BeaconSettingsContainer() { super(27); }
     }
-    public static class MiscSettingsContainer extends SimpleContainer {
+    public static class MiscSettingsContainer extends SimpleContainer implements GuardedGuiContainer {
         public MiscSettingsContainer() { super(27); }
     }
-    public static class DoubleAdjusterContainer extends SimpleContainer {
+    public static class DoubleAdjusterContainer extends SimpleContainer implements GuardedGuiContainer {
         private final String targetField;
         public DoubleAdjusterContainer(String targetField) {
             super(27);
