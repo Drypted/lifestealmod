@@ -106,6 +106,7 @@ public class LifestealCommands {
     // --- /revive PLAYER ---
     private static void registerRevive(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("revive")
+            .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_OWNER))
             .then(Commands.argument("target", GameProfileArgument.gameProfile())
                 .executes(context -> {
                     CommandSourceStack source = context.getSource();
