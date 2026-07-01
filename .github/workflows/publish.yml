@@ -1,0 +1,41 @@
+# Publish a release to Modrinth, CurseForge, and GitHub Releases.
+# Triggered when a *-main branch is updated (e.g. merging <mc>-v<ver>-staging
+# into <mc>-v<ver>-main). Game versions, loaders and dependencies are detected
+# automatically from src/main/resources/fabric.mod.json, so this file is the
+# same on every -main branch.
+
+name: publish
+on:
+  push:
+    branches:
+      - '*-main'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+      - name: build
+        run: ./gradlew build
+      - name: publish to modrinth, curseforge and github releases
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ vars.MODRINTH_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          curseforge-id: ${{ vars.CURSEFORGE_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          version-type: release
