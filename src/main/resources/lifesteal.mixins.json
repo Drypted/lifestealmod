@@ -15,7 +15,8 @@
 		"RespawnAnchorMixin",
 		"EnderPearlMixin",
 		"ResultSlotMixin",
-		"TotemDisableMixin"
+		"TotemDisableMixin",
+		"CraftingMenuMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
