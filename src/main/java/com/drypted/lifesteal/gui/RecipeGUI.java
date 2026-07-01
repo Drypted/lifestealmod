@@ -28,7 +28,7 @@ public class RecipeGUI {
         for (int i = 0; i < 27; i++) container.setItem(i, createGlass(Items.STAINED_GLASS_PANE.gray(), " "));
 
         container.setItem(11, createItemWithName(ServerItemHelper.createHeart(), "§cConfigure Heart Recipe"));
-        container.setItem(13, createItemWithName(ServerItemHelper.createReviveBeacon(), "§bConfigure Revive Beacon Recipe"));
+        container.setItem(15, createItemWithName(ServerItemHelper.createReviveBeacon(), "§bConfigure Revive Beacon Recipe"));
 
         player.openMenu(new SimpleMenuProvider(
             (id, inv, p) -> new ChestMenu(MenuType.GENERIC_9x3, id, inv, container, 3),
