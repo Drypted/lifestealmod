@@ -85,8 +85,8 @@ public class HeartManager {
         // 1. Unban if banned
         if (server.getPlayerList().getBans().isBanned(nameAndId)) {
             server.getPlayerList().getBans().remove(nameAndId);
-            revived = true;
-        }
+            
+        
 
         ServerPlayer onlinePlayer = server.getPlayerList().getPlayer(profile.id());
         ServerLevel overworld = server.getLevel(Level.OVERWORLD);
@@ -124,6 +124,9 @@ public class HeartManager {
                 }
             } catch (Exception ignored) {}
         }
+/*moved this end bracket from right after the unnban statement and added the else */ } else{
+revived = false;
+}
         return revived;
     }
 }
