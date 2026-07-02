@@ -1,0 +1,79 @@
+# Publish a release to Modrinth, CurseForge, and GitHub Releases.
+# Triggered when a *-main branch is updated (e.g. merging <mc>-v<ver>-staging
+# into <mc>-v<ver>-main). Game versions, loaders and dependencies are detected
+# automatically from src/main/resources/fabric.mod.json, so this file is the
+# same on every -main branch.
+#
+# Duplicate protection is two-layered: version-guard.yml blocks the staging->main
+# PR when the version already exists, and this workflow ALSO hard-fails (it never
+# republishes or overwrites) if the version is already on Modrinth. Bump
+# mod_version before merging to release.
+#
+# github-commitish pins the created tag to THIS branch's commit. Without it
+# mc-publish defaults to the repository default branch, so tags for non-default
+# branches (e.g. 26.1.2) would be planted on the wrong commit.
+
+name: publish
+on:
+  push:
+    branches:
+      - '*-main'
+
+permissions:
+  contents: write
+
+env:
+  MODRINTH_ID: UL0rSG61
+  CURSEFORGE_ID: '1064969'
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: validate gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+      - name: setup jdk
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'microsoft'
+      - name: make gradle wrapper executable
+        run: chmod +x ./gradlew
+      - name: build
+        run: ./gradlew build
+
+      - name: resolve version and check if it already exists
+        id: check
+        run: |
+          ver=$(grep '^mod_version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          mc=$(grep '^minecraft_version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          full="v${ver}+mc-${mc}"
+          echo "full=$full" >> "$GITHUB_OUTPUT"
+          id=$(curl -s "https://api.modrinth.com/v2/project/${MODRINTH_ID}/version" \
+            | jq -r --arg v "$full" 'map(select(.version_number == $v)) | .[0].id // empty')
+          if [ -n "$id" ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: fail if version already published
+        if: steps.check.outputs.exists == 'true'
+        run: |
+          echo "::error::${{ steps.check.outputs.full }} is already published on Modrinth - refusing to publish a duplicate. Bump mod_version in gradle.properties before merging to main."
+          exit 1
+
+      - name: publish to modrinth, curseforge and github releases
+        if: steps.check.outputs.exists == 'false'
+        uses: Kir-Antipov/mc-publish@v3.3
+        with:
+          modrinth-id: ${{ env.MODRINTH_ID }}
+          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
+          curseforge-id: ${{ env.CURSEFORGE_ID }}
+          curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-tag: ${{ steps.check.outputs.full }}
+          github-commitish: ${{ github.sha }}
+          version-type: release
