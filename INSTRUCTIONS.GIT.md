@@ -5,8 +5,7 @@ pushing or cutting a release.
 
 ## Branches
 
-Branches follow the convention **`<mc-version>-v<mod-version>-<type>`**, where
-`type` is either:
+Branches follow the convention **`<mc-version>-<type>`**, where `type` is either:
 
 - **`main`** — the release branch. Pushing here publishes a release.
 - **`staging`** — the development branch. All work happens here.
@@ -15,10 +14,17 @@ Each supported Minecraft version has a `main` + `staging` pair, e.g.:
 
 | Branch | Purpose |
 | --- | --- |
-| `26.2-v3.0.2-staging` | develop for MC 26.2 |
-| `26.2-v3.0.2-main` | release for MC 26.2 |
-| `26.1.2-v3.0.2-staging` | develop for MC 26.1.2 |
-| `26.1.2-v3.0.2-main` | release for MC 26.1.2 |
+| `26.2-staging` | develop for MC 26.2 |
+| `26.2-main` | release for MC 26.2 |
+| `26.1.2-staging` | develop for MC 26.1.2 |
+| `26.1.2-main` | release for MC 26.1.2 |
+
+The **mod version is deliberately not in the branch name.** Branches are
+long-lived, but the mod version changes every release — the exact released
+version lives in the git tag (`v<mod>+mc-<mc>`) and in `gradle.properties` at
+that commit, so putting it in the branch name would only go stale. The Minecraft
+version *is* in the name because it identifies a stable, parallel maintenance
+line.
 
 ### Flow is one-directional
 
@@ -94,8 +100,8 @@ The consequence: **you must bump `mod_version` for each release.**
 
 1. Create a new pair from the closest existing one, e.g.:
    ```
-   git switch -c 26.3-v3.0.2-staging 26.2-v3.0.2-staging
-   git switch -c 26.3-v3.0.2-main    26.2-v3.0.2-main
+   git switch -c 26.3-staging 26.2-staging
+   git switch -c 26.3-main    26.2-main
    ```
 2. Update `gradle.properties` (`minecraft_version`, `fabric_api_version`,
    `loader_version` as needed) and the `minecraft` entry in
