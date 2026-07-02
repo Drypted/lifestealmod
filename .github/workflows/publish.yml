@@ -8,6 +8,10 @@
 # PR when the version already exists, and this workflow ALSO hard-fails (it never
 # republishes or overwrites) if the version is already on Modrinth. Bump
 # mod_version before merging to release.
+#
+# github-commitish pins the created tag to THIS branch's commit. Without it
+# mc-publish defaults to the repository default branch, so tags for non-default
+# branches (e.g. 26.1.2) would be planted on the wrong commit.
 
 name: publish
 on:
@@ -71,4 +75,5 @@ jobs:
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-tag: ${{ steps.check.outputs.full }}
+          github-commitish: ${{ github.sha }}
           version-type: release
