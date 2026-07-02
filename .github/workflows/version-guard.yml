@@ -1,0 +1,31 @@
+# Blocks merging <mc>-v<ver>-staging into <mc>-v<ver>-main when the resulting
+# version (v<mod_version>+mc-<minecraft_version>) has already been released -
+# i.e. its git tag already exists. Prevents accidental duplicate publishes.
+#
+# This only enforces once the "block duplicate version" job is set as a REQUIRED
+# status check in the *-main ruleset; until then it runs but does not block.
+
+name: version guard
+on:
+  pull_request:
+    branches:
+      - '*-main'
+
+jobs:
+  guard:
+    name: block duplicate version
+    runs-on: ubuntu-24.04
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v6
+      - name: fail if version already released
+        run: |
+          ver=$(grep '^mod_version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          mc=$(grep '^minecraft_version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')
+          full="v${ver}+mc-${mc}"
+          echo "checking whether $full is already released..."
+          if git ls-remote --exit-code --tags origin "refs/tags/$full" >/dev/null 2>&1; then
+            echo "::error::$full is already released (its tag exists). Bump mod_version in gradle.properties before merging to main."
+            exit 1
+          fi
+          echo "$full is new - ok to merge."

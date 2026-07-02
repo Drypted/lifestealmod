@@ -54,11 +54,11 @@ public class EnchantmentCapGUI {
 
     private record Category(String displayName, java.util.function.Predicate<Holder<Enchantment>> predicate) {}
 
-    public static class CapListContainer extends SimpleContainer {
+    public static class CapListContainer extends SimpleContainer implements GuardedGuiContainer {
         public CapListContainer() { super(54); }
     }
 
-    public static class AdjusterContainer extends SimpleContainer {
+    public static class AdjusterContainer extends SimpleContainer implements GuardedGuiContainer {
         private final String enchantmentId;
         private int currentCap;
         private int maxPossible;

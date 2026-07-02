@@ -4,10 +4,10 @@
 # automatically from src/main/resources/fabric.mod.json, so this file is the
 # same on every -main branch.
 #
-# If the version (mod_version+minecraft_version) already exists it is REPLACED
-# on Modrinth + GitHub (delete then re-publish). CurseForge has no delete API,
-# so on a replace its upload is skipped and the run fails at the end to flag
-# that the CurseForge file must be swapped out manually.
+# Duplicate protection is two-layered: version-guard.yml blocks the staging->main
+# PR when the version already exists, and this workflow ALSO hard-fails (it never
+# republishes or overwrites) if the version is already on Modrinth. Bump
+# mod_version before merging to release.
 
 name: publish
 on:
@@ -51,39 +51,15 @@ jobs:
             | jq -r --arg v "$full" 'map(select(.version_number == $v)) | .[0].id // empty')
           if [ -n "$id" ]; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "modrinth_version_id=$id" >> "$GITHUB_OUTPUT"
-            echo "::warning::Version $full already exists (Modrinth id $id). Replacing it on Modrinth + GitHub; CurseForge must be handled manually."
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: delete existing modrinth version
+      - name: fail if version already published
         if: steps.check.outputs.exists == 'true'
         run: |
-          code=$(curl -s -o /dev/null -w '%{http_code}' -X DELETE \
-            -H "Authorization: ${{ secrets.MODRINTH_TOKEN }}" \
-            "https://api.modrinth.com/v2/version/${{ steps.check.outputs.modrinth_version_id }}")
-          echo "modrinth delete -> HTTP $code"
-          if [ "$code" != "204" ]; then
-            echo "::error::Could not delete existing Modrinth version (HTTP $code). MODRINTH_TOKEN likely lacks the 'Delete versions' scope."
-            exit 1
-          fi
-
-      - name: delete existing github release and tag
-        if: steps.check.outputs.exists == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          TAG: ${{ steps.check.outputs.full }}
-        run: |
-          rel=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
-            "https://api.github.com/repos/$REPO/releases/tags/$TAG" | jq -r '.id // empty')
-          if [ -n "$rel" ]; then
-            curl -s -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
-              "https://api.github.com/repos/$REPO/releases/$rel"
-          fi
-          curl -s -X DELETE -H "Authorization: Bearer $GH_TOKEN" \
-            "https://api.github.com/repos/$REPO/git/refs/tags/$TAG" >/dev/null 2>&1 || true
+          echo "::error::${{ steps.check.outputs.full }} is already published on Modrinth - refusing to publish a duplicate. Bump mod_version in gradle.properties before merging to main."
+          exit 1
 
       - name: publish to modrinth, curseforge and github releases
         if: steps.check.outputs.exists == 'false'
@@ -96,19 +72,3 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           github-tag: ${{ steps.check.outputs.full }}
           version-type: release
-
-      - name: replace on modrinth and github (curseforge skipped)
-        if: steps.check.outputs.exists == 'true'
-        uses: Kir-Antipov/mc-publish@v3.3
-        with:
-          modrinth-id: ${{ env.MODRINTH_ID }}
-          modrinth-token: ${{ secrets.MODRINTH_TOKEN }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          github-tag: ${{ steps.check.outputs.full }}
-          version-type: release
-
-      - name: flag curseforge for manual replacement
-        if: steps.check.outputs.exists == 'true'
-        run: |
-          echo "::error::Replaced ${{ steps.check.outputs.full }} on Modrinth + GitHub. CurseForge has no delete API - delete the old file on CurseForge and re-upload the jar from build/libs manually."
-          exit 1

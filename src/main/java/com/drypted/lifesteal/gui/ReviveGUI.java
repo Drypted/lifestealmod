@@ -18,7 +18,7 @@ import net.minecraft.world.level.GameType;
 public class ReviveGUI {
     public static final Component TITLE = Component.literal("Revive a Player");
 
-    public static class ReviveContainer extends SimpleContainer {
+    public static class ReviveContainer extends SimpleContainer implements GuardedGuiContainer {
         public ReviveContainer(int size) {
             super(size);
         }
