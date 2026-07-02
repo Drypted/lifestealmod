@@ -12,18 +12,18 @@ Branches follow the convention **`<mc-version>-<type>`**, where `type` is either
 
 Each supported Minecraft version has a `main` + `staging` pair, e.g.:
 
-| Branch | Purpose |
-| --- | --- |
-| `26.2-staging` | develop for MC 26.2 |
-| `26.2-main` | release for MC 26.2 |
+| Branch           | Purpose               |
+| ---------------- | --------------------- |
+| `26.2-staging`   | develop for MC 26.2   |
+| `26.2-main`      | release for MC 26.2   |
 | `26.1.2-staging` | develop for MC 26.1.2 |
-| `26.1.2-main` | release for MC 26.1.2 |
+| `26.1.2-main`    | release for MC 26.1.2 |
 
 The **mod version is deliberately not in the branch name.** Branches are
 long-lived, but the mod version changes every release — the exact released
 version lives in the git tag (`v<mod>+mc-<mc>`) and in `gradle.properties` at
 that commit, so putting it in the branch name would only go stale. The Minecraft
-version *is* in the name because it identifies a stable, parallel maintenance
+version _is_ in the name because it identifies a stable, parallel maintenance
 line.
 
 ### Flow is one-directional
@@ -39,7 +39,7 @@ line.
 - **Never commit directly to a `-main` branch** — it is protected and will
   reject direct pushes (see below).
 - **Never merge `main` back into `staging`.** Main only ever receives changes
-  *from* staging, so a back-merge is unnecessary. In particular, **never delete
+  _from_ staging, so a back-merge is unnecessary. In particular, **never delete
   a workflow file from `staging`** — merging that into `main` would delete it
   there and silently break releases.
 
@@ -111,17 +111,17 @@ The consequence: **you must bump `mod_version` for each release.**
 
 ## Workflows
 
-| File | Trigger | Does |
-| --- | --- | --- |
-| [`build.yml`](.github/workflows/build.yml) | push / PR (all branches) | builds + uploads artifacts (CI) |
-| [`version-guard.yml`](.github/workflows/version-guard.yml) | PR into `*-main` | blocks merging a duplicate version |
-| [`publish.yml`](.github/workflows/publish.yml) | push to `*-main` | publishes to Modrinth, CurseForge, GitHub |
+| File                                                       | Trigger                  | Does                                      |
+| ---------------------------------------------------------- | ------------------------ | ----------------------------------------- |
+| [`build.yml`](.github/workflows/build.yml)                 | push / PR (all branches) | builds + uploads artifacts (CI)           |
+| [`version-guard.yml`](.github/workflows/version-guard.yml) | PR into `*-main`         | blocks merging a duplicate version        |
+| [`publish.yml`](.github/workflows/publish.yml)             | push to `*-main`         | publishes to Modrinth, CurseForge, GitHub |
 
 ## Maintainer configuration
 
 Set once at the repository level (Settings → Secrets and variables → Actions):
 
-- Secret **`MODRINTH_TOKEN`** — Modrinth PAT with *Create versions* scope.
+- Secret **`MODRINTH_TOKEN`** — Modrinth PAT with _Create versions_ scope.
 - Secret **`CURSEFORGE_TOKEN`** — CurseForge upload API token.
 
 `GITHUB_TOKEN` is provided automatically. The Modrinth/CurseForge **project IDs
